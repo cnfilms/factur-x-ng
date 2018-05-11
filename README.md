@@ -9,7 +9,7 @@ Since there are multiple flavors of the embedded XML data, this library abstract
 - Edit and save existing XML metadata.
 - Create new XML representation from template and embed in PDF.
 - Add existing XML representation to PDF.
-- Validate XML representation.
+- Validate existing XML representation.
 
 ## Installation
 
@@ -23,7 +23,7 @@ from facturx import FacturX
 
 inv = FacturX('some-file.pdf')
 inv['due_date'] = datetime(2018, 10, 10)
-inv['seller'] = 'Smith'
+inv['seller.name'] = 'Smith Ltd.'
 inv['buyer.country'] = 'France'
 ```
 
@@ -41,15 +41,11 @@ inv_dict['currency'] = 'USD'
 inv.update(inv_dict)
 ```
 
-Save XML metadata in original formats and remove.
+Save XML metadata in separate file in different formats.
 ```
-inv.write_xml('metadata.xml', flavor='same')
-inv.write_xml('metadata.xml', flavor='zugferd')
+inv.write_xml('metadata.xml')
 inv.write_json('metadata.json')
 inv.write_yaml('metadata.yml')
-
-inv.xml = None
-inv.save()
 ```
 
 To have more examples, look at the source code of the command line tools located in the *bin* subdirectory.
@@ -58,10 +54,10 @@ To have more examples, look at the source code of the command line tools located
 
 Several sub-commands are provided with this lib:
 
-- Dump embedded metadata: `invoicex dump file-with-xml.pdf metadata.(xml|json|yml)`
-- Validate existing metadata: `invoicex validate file-with-xml.pdf`
-- Add external metadata file: `invoicex add no-xml.pdf metadata.xml`
-- Extract fields from PDF and embed: `invoicex extract no-xml.pdf`
+- Dump embedded metadata: `facturx dump file-with-xml.pdf metadata.(xml|json|yml)`
+- Validate existing metadata: `facturx validate file-with-xml.pdf`
+- Add external metadata file: `facturx add no-xml.pdf metadata.xml`
+- Extract fields from PDF and embed: `facturx extract no-xml.pdf`
 
 All these commande line tools have a **-h** option that explains how to use them and shows all the available options.
 
