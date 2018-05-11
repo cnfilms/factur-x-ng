@@ -1,8 +1,10 @@
-# https://github.com/OCA/edi/blob/10.0/account_invoice_import/wizard/account_invoice_import.py#L77
+# This file maps XML paths to human-readable field names for the most important fields.
+# Names from https://github.com/OCA/edi/blob/10.0/account_invoice_import/wizard/account_invoice_import.py#L77
 ---
 version:
     _path:
-        factur-x: //rsm:SpecifiedExchangedDocumentContext/ram:GuidelineSpecifiedDocumentContextParameter/ram:ID
+        factur-x: //rsm:ExchangedDocumentContext/ram:GuidelineSpecifiedDocumentContextParameter/ram:ID
+        zugferd: //rsm:SpecifiedExchangedDocumentContext/ram:GuidelineSpecifiedDocumentContextParameter/ram:ID
         ubl: //cbc:ProfileID
     _required: true
     _default: urn:ferd:CrossIndustryDocument:invoice:1p0:basic

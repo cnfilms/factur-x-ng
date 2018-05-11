@@ -33,6 +33,7 @@ from ._version import __version__
 import io
 import os
 import yaml
+import codecs
 from io import BytesIO
 from lxml import etree
 from tempfile import NamedTemporaryFile
@@ -44,7 +45,9 @@ from pkg_resources import resource_filename
 import os.path
 import mimetypes
 import hashlib
-import logging
+
+from .flavors import xml_flavor
+from .logger import logger
 
 try: # Python 2 and 3 compat
     file_types = (file, io.IOBase)
@@ -53,41 +56,22 @@ except NameError:
 unicode = str
 
 
-FORMAT = '%(asctime)s [%(levelname)s] %(message)s'
-logging.basicConfig(format=FORMAT)
-logger = logging.getLogger('factur-x')
-logger.setLevel(logging.DEBUG)
-
-FACTURX_FILENAME = 'factur-x.xml'
-FACTURX_LEVEL2xsd = {
-    'minimum': 'FACTUR-X_BASIC-WL.xsd',
-    'basicwl': 'FACTUR-X_BASIC-WL.xsd',
-    'basic': 'FACTUR-X_EN16931.xsd',
-    'en16931': 'FACTUR-X_EN16931.xsd',  # comfort
-}
-FACTURX_LEVEL2xmp = {
-    'minimum': 'MINIMUM',
-    'basicwl': 'BASIC WL',
-    'basic': 'BASIC',
-    'en16931': 'EN 16931',
-    }
-
-with open(os.path.join(os.path.dirname(__file__), 'fields.yml')) as f:
-    FIELDS = yaml.load(f)
-
-
 class FacturX(object):
-    """Represents an electronic PDF invoice with embedded XML metadata.
+    """Represents an electronic PDF invoice with embedded XML metadata following the
+    Factur-X standard.
+
+    The source of truth is always the underlying XML tree. No copy of field
+    data is kept. Manipulation of the XML tree is either done via Python-style
+    dict access (available for the most common fields) or by directly accessing
+    the XML data on `FacturX.xml`.
 
     Attributes:
     - xml: xml tree of machine-readable representation.
     - pdf: underlying graphical PDF representation.
     - flavor: which flavor (Factur-x or Zugferd) to use.
     """
-    def __init__(self, pdf_invoice):
-        # super(FacturX, self).__init__()
-
-        # Read path, file or string
+    def __init__(self, pdf_invoice, flavor='factur-x', level='minimum'):
+        # Read PDF from path, pointer or string
         if isinstance(pdf_invoice, str) and pdf_invoice.endswith('.pdf') and os.path.isfile(pdf_invoice):
             with open(pdf_invoice, 'rb') as f:
                 pdf_file = BytesIO(f.read())
@@ -106,143 +90,119 @@ class FacturX(object):
         # PDF has metadata embedded
         if xml is not None: 
             self.xml = xml
-            self.flavor = get_facturx_flavor(xml)
-            self._namespaces = xml.nsmap
-            self._populate_from_xml()
-        # No metadata embedded
+            self.flavor = xml_flavor.XMLFlavor(xml)
+            logger.info('Read existing XML from PDF. Flavor: %s', self.flavor.name)
+        # No metadata embedded. Create from template.
         else:
-            logger.info('PDF does not have XML embedded.')
+            self.flavor, self.xml = xml_flavor.XMLFlavor.from_template(flavor, level)
+            logger.info('PDF does not have XML embedded. Adding from template.')
+        
+        self.flavor.check_xsd(self.xml)
+        self._namespaces = self.xml.nsmap
 
 
-    def _populate_from_xml(self):
-        """Populate current object with values from XML."""
-        for field_name, details in FIELDS.items():
-            
-            # Choose XML path depending on flavor.
-            if self.flavor in details['_path']:
-                path = details['_path'][self.flavor]
-            else: # Factur-x as fallback for cases it's the same as Zugferd.
-                path = details['_path']['factur-x']
-
-            value = self.xml.xpath(path, namespaces=self._namespaces)
-            if value is not None:
-                value = value[0].text
-            if 'date' in field_name:
-                value = datetime.strptime(value, '%Y%m%d')
-            setattr(self, field_name, value)
-
-
-    def _xml_from_file(self, pdf_file, check_xsd=True):
+    def _xml_from_file(self, pdf_file):
         pdf = PdfFileReader(pdf_file)
         pdf_root = pdf.trailer['/Root']
-        embeddedfiles = pdf_root['/Names']['/EmbeddedFiles']['/Names']
+        if '/EmbeddedFiles' not in pdf_root['/Names']:
+            logger.info('No existing XML file found.')
+            return None
 
-        for file in embeddedfiles:
+        for file in pdf_root['/Names']['/EmbeddedFiles']['/Names']:
             if isinstance(file, IndirectObject):
                 obj = file.getObject()
-                if obj['/F'] in (FACTURX_FILENAME, 'ZUGFeRD-invoice.xml'):
+                if obj['/F'] in xml_flavor.valid_xmp_filenames():
                     xml_root = etree.fromstring(obj['/EF']['/F'].getData())
                     xml_content = xml_root
                     xml_filename = obj['/F']
                     logger.info(
                         'A valid XML file %s has been found in the PDF file',
                         xml_filename)
-                    if check_xsd:
-                        check_facturx_xsd(xml_root)
                     return xml_content
 
-    def to_pdf(self, output_pdf_file):
+    def __getitem__(self, field_name):
+        path = self.flavor._get_xml_path(field_name)
+        value = self.xml.xpath(path, namespaces=self._namespaces)
+        if value is not None:
+            value = value[0].text
+        if 'date' in field_name:
+            value = datetime.strptime(value, '%Y%m%d')
+        return value
+
+
+    def __setitem__(self, field_name, value):
+        path = self.flavor._get_xml_path(field_name)
+        res = self.xml.xpath(path, namespaces=self._namespaces)
+        if len(res) > 1:
+            raise LookupError('Multiple nodes found for this path. Refusing to edit.')
+        
+        if 'date' in field_name:
+            assert isinstance(value, datetime), 'Please pass date values as DateTime() object.'
+            value = value.strftime('%Y%m%d')
+            res[0].attrib['format'] = '102'
+            res[0].text = value
+        else:
+            res[0].text = value
+
+    def is_valid(self):
+        """Make every effort to validate the current XML.
+
+        Checks:
+        - all required fields are present and have values.
+        - XML is valid
+        - ...
+
+        Returns: true/false (validation passed/failed)
+        """
+        pass
+
+    def write_pdf(self, output_pdf_file):
+        new_pdf_filestream = PdfFileWriter()
+        new_pdf_filestream.appendPagesFromReader(original_pdf)
+
+        xml_string = etree.tostring(self.xml, pretty_print=True)
+
+        base_info = _extract_base_info(xml_root) # TODO: use my way to get metadata.
+        pdf_metadata = _base_info2pdf_metadata(base_info)
+
+        facturx_level = facturx_level.lower()
+        if facturx_level not in FACTURX_LEVEL2xsd:
+            if xml_root is None:
+                xml_root = etree.fromstring(xml_string)
+            logger.debug('Factur-X level will be autodetected')
+            facturx_level = get_facturx_level(xml_root)
+
         _facturx_update_metadata_add_attachment(
             new_pdf_filestream, xml_string, pdf_metadata, facturx_level,
             output_intents=output_intents,
             additional_attachments=additional_attachments_read)
 
+
+        if output_pdf_file:
+            with open(output_pdf_file, 'wb') as output_f:
+                new_pdf_filestream.write(output_f)
+                output_f.close()
+        else:
+            if file_type == 'path':
+                with open(pdf_invoice, 'wb') as f:
+                    new_pdf_filestream.write(f)
+                    f.close()
+            elif file_type == 'file':
+                new_pdf_filestream.write(pdf_invoice)
+        logger.info('%s file added to PDF invoice', FACTURX_FILENAME)
+
+
+
         if output_pdf_file:
             with open(output_pdf_file, 'wb') as output_f:
                 new_pdf_filestream.write(output_f)
 
-    def to_xml(self, path)
 
+    def write_xml(self, path):
+        with open(path, 'wb') as f:
+            xml_str = etree.tostring(self.xml, pretty_print=True)
+            f.write(xml_str)
 
-def check_facturx_xsd(
-        facturx_xml, flavor='autodetect', facturx_level='autodetect'):
-    """
-    Validate the XML file against the XSD
-    :param facturx_xml: the Factur-X XML
-    :type facturx_xml: string, file or etree object
-    :param flavor: possible values: 'factur-x', 'zugferd' or 'autodetect'
-    :type flavor: string
-    :param facturx_level: the level of the Factur-X XML file. Default value
-    is 'autodetect'. The only advantage to specifiy a particular value instead
-    of using the autodetection is for a small perf improvement.
-    Possible values: minimum, basicwl, basic, en16931.
-    :return: True if the XML is valid against the XSD
-    raise an error if it is not valid against the XSD
-    """
-    if facturx_xml is None:
-        raise ValueError('Missing facturx_xml argument')
-    if not isinstance(flavor, (str, unicode)):
-        raise ValueError('Wrong type for flavor argument')
-    if not isinstance(facturx_level, (type(None), str, unicode)):
-        raise ValueError('Wrong type for facturx_level argument')
-    facturx_xml_etree = None
-    if isinstance(facturx_xml, str):
-        xml_string = facturx_xml
-    elif isinstance(facturx_xml, unicode):
-        xml_string = facturx_xml.encode('utf8')
-    elif isinstance(facturx_xml, type(etree.Element('pouet'))):
-        facturx_xml_etree = facturx_xml
-        xml_string = etree.tostring(
-            facturx_xml, pretty_print=True, encoding='UTF-8',
-            xml_declaration=True)
-    elif isinstance(facturx_xml, file):
-        facturx_xml.seek(0)
-        xml_string = facturx_xml.read()
-        facturx_xml.close()
-
-    if flavor not in ('factur-x', 'facturx', 'zugferd'):  # autodetect
-        if facturx_xml_etree is None:
-            try:
-                facturx_xml_etree = etree.fromstring(xml_string)
-            except Exception as e:
-                raise Exception(
-                    "The XML syntax is invalid: %s." % unicode(e))
-        flavor = get_facturx_flavor(facturx_xml_etree)
-    if flavor in ('factur-x', 'facturx'):
-        if facturx_level not in FACTURX_LEVEL2xsd:
-            if facturx_xml_etree is None:
-                try:
-                    facturx_xml_etree = etree.fromstring(xml_string)
-                except Exception as e:
-                    raise Exception(
-                        "The XML syntax is invalid: %s." % unicode(e))
-            facturx_level = get_facturx_level(facturx_xml_etree)
-        if facturx_level not in FACTURX_LEVEL2xsd:
-            raise ValueError(
-                "Wrong level '%s' for Factur-X invoice." % facturx_level)
-        xsd_filename = FACTURX_LEVEL2xsd[facturx_level]
-        xsd_file = resource_filename(
-            __name__, 'xsd/factur-x/%s' % xsd_filename)
-    elif flavor == 'zugferd':
-        xsd_file = resource_filename(
-            __name__, 'xsd/zugferd/ZUGFeRD1p0.xsd')
-    xsd_etree_obj = etree.parse(open(xsd_file))
-    official_schema = etree.XMLSchema(xsd_etree_obj)
-    try:
-        t = etree.parse(BytesIO(xml_string))
-        official_schema.assertValid(t)
-        logger.info('Factur-X XML file successfully validated against XSD')
-    except Exception as e:
-        # if the validation of the XSD fails, we arrive here
-        logger.error(
-            "The XML file is invalid against the XML Schema Definition")
-        logger.error('XSD Error: %s', e)
-        raise Exception(
-            "The %s XML file is not valid against the official "
-            "XML Schema Definition. "
-            "Here is the error, which may give you an idea on the "
-            "cause of the problem: %s." % (flavor.capitalize(), unicode(e)))
-    return True
 
 # depreceated now in FacturX class
 def get_facturx_xml_from_pdf(pdf_invoice, check_xsd=True):
@@ -294,6 +254,25 @@ def _get_metadata_timestamp():
     # example format : 2014-07-25T14:01:22+02:00
     meta_date = now_dt.strftime('%Y-%m-%dT%H:%M:%S+00:00')
     return meta_date
+
+def _base_info2pdf_metadata(base_info):
+    if base_info['doc_type'] == '381':
+        doc_type_name = u'Refund'
+    else:
+        doc_type_name = u'Invoice'
+    date_str = datetime.strftime(base_info['date'], '%Y-%m-%d')
+    title = '%s: %s %s' % (
+        base_info['seller'], doc_type_name, base_info['number'])
+    subject = 'Factur-X %s %s dated %s issued by %s' % (
+        doc_type_name, base_info['number'], date_str, base_info['seller'])
+    pdf_metadata = {
+        'author': base_info['seller'],
+        'keywords': u'%s, Factur-X' % doc_type_name,
+        'title': title,
+        'subject': subject,
+        }
+    logger.debug('Converted base_info to pdf_metadata: %s', pdf_metadata)
+    return pdf_metadata
 
 
 def _prepare_pdf_metadata_txt(pdf_metadata):
@@ -591,45 +570,6 @@ def _base_info2pdf_metadata(base_info):
         }
     logger.debug('Converted base_info to pdf_metadata: %s', pdf_metadata)
     return pdf_metadata
-
-
-def get_facturx_level(facturx_xml_etree):
-    if not isinstance(facturx_xml_etree, type(etree.Element('pouet'))):
-        raise ValueError('facturx_xml_etree must be an etree.Element() object')
-    namespaces = facturx_xml_etree.nsmap
-    doc_id_xpath = facturx_xml_etree.xpath(
-        "//rsm:ExchangedDocumentContext"
-        "/ram:GuidelineSpecifiedDocumentContextParameter"
-        "/ram:ID", namespaces=namespaces)
-    if not doc_id_xpath:
-        raise ValueError(
-            "This XML is not a Factur-X XML because it misses the XML tag "
-            "ExchangedDocumentContext/"
-            "GuidelineSpecifiedDocumentContextParameter/ID.")
-    doc_id = doc_id_xpath[0].text
-    level = doc_id.split(':')[-1]
-    if level not in FACTURX_LEVEL2xmp:
-        level = doc_id.split(':')[-2]
-    if level not in FACTURX_LEVEL2xmp:
-        raise ValueError(
-            "Invalid Factur-X URN: '%s'" % doc_id)
-    logger.info('Factur-X level is %s (autodetected)', level)
-    return level
-
-
-def get_facturx_flavor(facturx_xml_etree):
-    if not isinstance(facturx_xml_etree, type(etree.Element('pouet'))):
-        raise ValueError('facturx_xml_etree must be an etree.Element() object')
-    if facturx_xml_etree.tag.startswith('{urn:un:unece:uncefact:'):
-        flavor = 'factur-x'
-    elif facturx_xml_etree.tag.startswith('{urn:ferd:'):
-        flavor = 'zugferd'
-    else:
-        raise Exception(
-            "Could not detect if the invoice is a Factur-X or ZUGFeRD "
-            "invoice.")
-    logger.info('Factur-X flavor is %s (autodetected)', flavor)
-    return flavor
 
 
 def _get_original_output_intents(original_pdf):

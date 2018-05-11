@@ -4,35 +4,41 @@ Factur-X is a EU standard for embedding XML representations of invoices in PDF f
 
 Since there are multiple flavors of the embedded XML data, this library abstracts them into a Python `dict`, which can be used to load and save from/to different flavors.
 
+## Main features:
+
+- Edit and save existing XML metadata.
+- Create new XML representation from template and embed in PDF.
+- Add existing XML representation to PDF.
+- Validate XML representation.
+
 ## Installation
 
 `sudo pip install --upgrade factur-x`
 
 ## Usage
 
-Load PDF file without XML and assign some values.
+Load PDF file without XML and assign some values to common fields.
 ```
-from invoicex import InvoiceX
+from facturx import FacturX
 
-inv = InvoiceX('some-file.pdf')
-inv.due_date = datetime(2018, 10, 10)
-inv.seller.name = 'Smith'
-inv.buyer.country = 'France'
+inv = FacturX('some-file.pdf')
+inv['due_date'] = datetime(2018, 10, 10)
+inv['seller'] = 'Smith'
+inv['buyer.country'] = 'France'
 ```
 
 Validate and save PDF including XML representation.
 ```
-inv.validate()
-inv.save(flavor='zugferd')
+inv.is_valid()
+inv.write_pdf('my-file.pdf')
 ```
 
-Load PDF *with* XML. View and update fields via pivot dict.
+Load PDF *with* XML embedded. View and update fields via pivot dict.
 ```
-inv = InvoiceX('another-file.pdf')
+inv = FacturX('another-file.pdf')
 inv_dict = inv.as_dict()
 inv_dict['currency'] = 'USD'
 inv.update(inv_dict)
-inv.validate()
 ```
 
 Save XML metadata in original formats and remove.
