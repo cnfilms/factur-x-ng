@@ -9,15 +9,20 @@ from datetime import datetime
 import os.path
 import mimetypes
 import hashlib
+from PyPDF2 import PdfFileReader
 
 from .flavors import xml_flavor
 from .logger import logger
+from .pdfwriter import FacturXPDFWriter
 
-try: # Python 2 and 3 compat
+# Python 2 and 3 compat
+try:
     file_types = (file, io.IOBase)
 except NameError:
     file_types = (io.IOBase,)
 unicode = str
+
+__all__ = ['FacturX']
 
 
 class FacturX(object):
@@ -64,6 +69,9 @@ class FacturX(object):
         self.flavor.check_xsd(self.xml)
         self._namespaces = self.xml.nsmap
 
+    def read_xml(self):
+        """Use XML data from external file. Replaces existing XML or template."""
+        pass
 
     def _xml_from_file(self, pdf_file):
         pdf = PdfFileReader(pdf_file)
@@ -120,57 +128,21 @@ class FacturX(object):
         """
         pass
 
-    def write_pdf(self, output_pdf_file):
-        new_pdf_filestream = PdfFileWriter()
-        new_pdf_filestream.appendPagesFromReader(original_pdf)
 
-        xml_string = etree.tostring(self.xml, pretty_print=True)
+    def write_pdf(self, path):
+        pdfwriter = FacturXPDFWriter(self)
+        with open(path, 'wb') as output_f:
+            pdfwriter.write(output_f)
 
-        base_info = _extract_base_info(xml_root) # TODO: use my way to get metadata.
-        pdf_metadata = _base_info2pdf_metadata(base_info)
+        logger.info('XML file added to PDF invoice')
+        return True
 
-        facturx_level = facturx_level.lower()
-        if facturx_level not in FACTURX_LEVEL2xsd:
-            if xml_root is None:
-                xml_root = etree.fromstring(xml_string)
-            logger.debug('Factur-X level will be autodetected')
-            facturx_level = get_facturx_level(xml_root)
-
-        _facturx_update_metadata_add_attachment(
-            new_pdf_filestream, xml_string, pdf_metadata, facturx_level,
-            output_intents=output_intents,
-            additional_attachments=additional_attachments_read)
-
-
-        if output_pdf_file:
-            with open(output_pdf_file, 'wb') as output_f:
-                new_pdf_filestream.write(output_f)
-                output_f.close()
-        else:
-            if file_type == 'path':
-                with open(pdf_invoice, 'wb') as f:
-                    new_pdf_filestream.write(f)
-                    f.close()
-            elif file_type == 'file':
-                new_pdf_filestream.write(pdf_invoice)
-        logger.info('%s file added to PDF invoice', FACTURX_FILENAME)
-
-
-
-        if output_pdf_file:
-            with open(output_pdf_file, 'wb') as output_f:
-                new_pdf_filestream.write(output_f)
-
+    @property
+    def xml_str(self):
+        """Calculate MD5 checksum of XML file. Used for PDF attachment."""
+        return etree.tostring(self.xml, pretty_print=True)
 
     def write_xml(self, path):
         with open(path, 'wb') as f:
-            xml_str = etree.tostring(self.xml, pretty_print=True)
-            f.write(xml_str)
+            f.write(self.xml_str)
 
-
-def _get_pdf_timestamp(date=None):
-    if date is None:
-        date = datetime.now()
-    # example date format: "D:20141006161354+02'00'"
-    pdf_date = date.strftime("D:%Y%m%d%H%M%S+00'00'")
-    return pdf_date
