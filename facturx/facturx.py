@@ -10,6 +10,7 @@ import os.path
 import mimetypes
 import hashlib
 from PyPDF2 import PdfFileReader
+from PyPDF2.generic import IndirectObject
 
 from .flavors import xml_flavor
 from .logger import logger
