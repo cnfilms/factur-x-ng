@@ -92,3 +92,24 @@ This library is published under the BSD licence (same licence as [PyPDF2](http:/
   * Add factur-x lib version in Creator metadata table
   * Add /PageMode = /UseAttachments, so that the attachments are displayed by default when opening Factur-X PDF invoice with Acrobat Reader
   * Improve and enrich PDF objects (ModDate, CheckSum, Size)
+
+## Related Projects
+ 
+ ### Related to Factur-x
+  * Open Source
+    * [Mustang Project](https://github.com/ZUGFeRD/mustangproject) (Java)
+    * [Konik](https://github.com/konik-io/konik) (Java | .NET)
+    * [Stephan Stepal](https://github.com/stephanstapel/ZUGFeRD-csharp) (C#)
+  * Commercial
+    * [Mimotek](http://www.mimotek.com/index.php/zugferd/) (beta)
+    * [PDFlib](http://www.pdflib.com/knowledge-base/pdfa/zugferd-invoices/) (JAVA)
+    * [iText5](https://developers.itextpdf.com/examples/zugferd/creating-zugferd-xml-files) (Java)
+    * [pdfMachine](http://www.pdfmachine.com/genp/zugferd_en.html) 
+
+ ### Related to invoice2data
+  * [OCR-Invoice](https://github.com/robela/OCR-Invoice) (FOSS | C#)
+  * [Docparser](https://docparser.com/) (Commercial | Web Service)
+  * [A-PDF](http://www.a-pdf.com/data-extractor/index.htm) (Commercial)
+  * [PDFdeconstruct](http://www.glyphandcog.com/PDFdeconstruct.html?g6) (Commercial)
+  * [CVision](http://www.cvisiontech.com/library/document-automation/forms-processing/extract-data-from-invoice.html) (Commercial) 
+    
