@@ -95,7 +95,6 @@ This library is published under the BSD licence (same licence as [PyPDF2](http:/
 
 ## Related Projects
  
- ### Related to Factur-x
   * Open Source
     * [Mustang Project](https://github.com/ZUGFeRD/mustangproject) (Java)
     * [Konik](https://github.com/konik-io/konik) (Java | .NET)
@@ -105,11 +104,3 @@ This library is published under the BSD licence (same licence as [PyPDF2](http:/
     * [PDFlib](http://www.pdflib.com/knowledge-base/pdfa/zugferd-invoices/) (JAVA)
     * [iText5](https://developers.itextpdf.com/examples/zugferd/creating-zugferd-xml-files) (Java)
     * [pdfMachine](http://www.pdfmachine.com/genp/zugferd_en.html) 
-
- ### Related to invoice2data
-  * [OCR-Invoice](https://github.com/robela/OCR-Invoice) (FOSS | C#)
-  * [Docparser](https://docparser.com/) (Commercial | Web Service)
-  * [A-PDF](http://www.a-pdf.com/data-extractor/index.htm) (Commercial)
-  * [PDFdeconstruct](http://www.glyphandcog.com/PDFdeconstruct.html?g6) (Commercial)
-  * [CVision](http://www.cvisiontech.com/library/document-automation/forms-processing/extract-data-from-invoice.html) (Commercial) 
-    
