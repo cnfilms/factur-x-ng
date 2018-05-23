@@ -77,7 +77,7 @@ class FacturX(object):
     def _xml_from_file(self, pdf_file):
         pdf = PdfFileReader(pdf_file)
         pdf_root = pdf.trailer['/Root']
-        if '/EmbeddedFiles' not in pdf_root['/Names']:
+        if '/Names' not in pdf_root or '/EmbeddedFiles' not in pdf_root['/Names']:
             logger.info('No existing XML file found.')
             return None
 
