@@ -20,7 +20,7 @@ setup(
     author_email='alexis.delattre@akretion.com',
     url='https://github.com/akretion/factur-x',
     description='Factur-X: electronic invoicing standard for Germany & France',
-    long_description=open('README.rst').read(),
+    long_description=open('README.md').read(),
     license='BSD',
     classifiers=[
         'Development Status :: 4 - Beta',
