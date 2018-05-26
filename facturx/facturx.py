@@ -65,6 +65,7 @@ class FacturX(object):
         # No metadata embedded. Create from template.
         else:
             self.flavor, self.xml = xml_flavor.XMLFlavor.from_template(flavor, level)
+            self.xml_remove_data()
             logger.info('PDF does not have XML embedded. Adding from template.')
         
         self.flavor.check_xsd(self.xml)
@@ -102,7 +103,6 @@ class FacturX(object):
             value = datetime.strptime(value, '%Y%m%d')
         return value
 
-
     def __setitem__(self, field_name, value):
         path = self.flavor._get_xml_path(field_name)
         res = self.xml.xpath(path, namespaces=self._namespaces)
@@ -129,6 +129,24 @@ class FacturX(object):
         """
         pass
 
+    def isfloat(self, text):
+        i = 0
+        for l in text:
+            if l == '.':
+                i += 1
+        if i == 1:
+            return True
+
+    def xml_remove_data(self):
+        for element in self.xml.iter("*"):
+            if element.text is not None and element.text.strip():
+                print(element.text)
+                if element.text.isdigit():
+                    element.text = '0'
+                elif self.isfloat(element.text):
+                    element.text = '0.0'
+                else:
+                    element.text = None
 
     def write_pdf(self, path):
         pdfwriter = FacturXPDFWriter(self)
