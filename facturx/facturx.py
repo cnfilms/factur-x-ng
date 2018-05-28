@@ -65,7 +65,6 @@ class FacturX(object):
         # No metadata embedded. Create from template.
         else:
             self.flavor, self.xml = xml_flavor.XMLFlavor.from_template(flavor, level)
-            self.xml_remove_data()
             logger.info('PDF does not have XML embedded. Adding from template.')
         
         self.flavor.check_xsd(self.xml)
@@ -128,25 +127,6 @@ class FacturX(object):
         Returns: true/false (validation passed/failed)
         """
         pass
-
-    def isfloat(self, text):
-        i = 0
-        for l in text:
-            if l == '.':
-                i += 1
-        if i == 1:
-            return True
-
-    def xml_remove_data(self):
-        for element in self.xml.iter("*"):
-            if element.text is not None and element.text.strip():
-                print(element.text)
-                if element.text.isdigit():
-                    element.text = '0'
-                elif self.isfloat(element.text):
-                    element.text = '0.0'
-                else:
-                    element.text = None
 
     def write_pdf(self, path):
         pdfwriter = FacturXPDFWriter(self)
