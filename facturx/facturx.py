@@ -185,20 +185,24 @@ class FacturX(object):
 
         self.zugf = {}
 
-        for i in zugf_key:
-            for j in zugf_value:
-                self.zugf[i] = j
+        for i in range(len(zugf_key)):
+            self.zugf[zugf_key[i]] = zugf_value[i]
 
-    def __export_file(self, ns, xml_file_path, json_file_path):
+    def __export_file_from_xml(self, ns, xml_file_path, json_file_path, flavor):
         self.__make_dict()
         json_factx = {}
 
         # xml_file_path = os.path.join(os.path.dirname(__file__), 'text.xml')
 
+        if flavor == 'factur-x':
+            flavor_dict = self.factx
+        elif flavor == 'zugferd':
+            flavor_dict = self.zugf
+
         with open(xml_file_path, 'r') as xml_file:
             tree = etree.parse(xml_file)
 
-            for k, v in self.factx.items():
+            for k, v in flavor_dict.items():
                 try:
                     r = tree.xpath(v, namespaces=ns)
                     json_factx[k] = r[0].text
@@ -208,7 +212,7 @@ class FacturX(object):
         with open(json_file_path, 'w') as json_file:
             json.dump(json_factx, json_file, indent=4, sort_keys=True)
 
-    def write_json_factx(self, xml_file_path, json_file_path='factur_x.json'):
+    def write_json_facturx(self, xml_file_path, json_file_path='factur_x.json'):
         ns = {'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
               'udt': 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100',
               'rsm': 'urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100',
@@ -216,7 +220,7 @@ class FacturX(object):
               'qdt': 'urn:un:unece:uncefact:data:standard:QualifiedDataType:100'
               }
 
-        self.__export_file(ns, xml_file_path, json_file_path)
+        self.__export_file_from_xml(ns, xml_file_path, json_file_path,  flavor='factur-x')
 
     def write_json_zugfred(self, xml_file_path, json_file_path='zugfred_x.json'):
         ns = {'udt': 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:15',
@@ -225,4 +229,52 @@ class FacturX(object):
               'xsi': 'http://www.w3.org/2001/XMLSchema-instance'
               }
 
-        self.__export_file(ns, xml_file_path, json_file_path)
+        self.__export_file_from_xml(ns, xml_file_path, json_file_path, flavor='zugferd')
+
+    def __export_file_from_pdf(self, ns, tree, json_file_path, flavor):
+        self.__make_dict()
+        json_factx = {}
+
+        # xml_file_path = os.path.join(os.path.dirname(__file__), 'text.xml')
+
+        if flavor == 'factur-x':
+            flavor_dict = self.factx
+        elif flavor == 'zugferd':
+            flavor_dict = self.zugf
+
+        for k, v in flavor_dict.items():
+            try:
+                r = tree.xpath(v, namespaces=ns)
+                json_factx[k] = r[0].text
+            except IndexError:
+                json_factx[k] = None
+
+        with open(json_file_path, 'w') as json_file:
+            json.dump(json_factx, json_file, indent=4, sort_keys=True)
+
+    def write_json_facturx_from_pdf(self, pdf_path, json_file_path='facturx.json'):
+        xml_data = self._xml_from_file(pdf_path)
+        ns = {'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+              'udt': 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100',
+              'rsm': 'urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100',
+              'ram': 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100',
+              'qdt': 'urn:un:unece:uncefact:data:standard:QualifiedDataType:100'
+              }
+
+        if xml_data is not None:
+            self.__export_file_from_pdf(ns, xml_data, json_file_path, flavor='factur-x')
+        else:
+            logger.error("There is no embedded data in file")
+
+    def write_json_zugfred_from_pdf(self, pdf_path, json_file_path='zugfred.json'):
+        xml_data = self._xml_from_file(pdf_path)
+        ns = {'udt': 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:15',
+              'ram': 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:12',
+              'rsm': 'urn:ferd:CrossIndustryDocument:invoice:1p0',
+              'xsi': 'http://www.w3.org/2001/XMLSchema-instance'
+              }
+
+        if xml_data is not None:
+            self.__export_file_from_pdf(ns, xml_data, json_file_path, flavor='zugferd')
+        else:
+            logger.error("There is no embedded data in file")
