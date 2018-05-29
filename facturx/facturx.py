@@ -11,6 +11,7 @@ import mimetypes
 import hashlib
 from PyPDF2 import PdfFileReader
 from PyPDF2.generic import IndirectObject
+import json
 
 from .flavors import xml_flavor
 from .logger import logger
@@ -40,13 +41,14 @@ class FacturX(object):
     - pdf: underlying graphical PDF representation.
     - flavor: which flavor (Factur-x or Zugferd) to use.
     """
+
     def __init__(self, pdf_invoice, flavor='factur-x', level='minimum'):
         # Read PDF from path, pointer or string
         if isinstance(pdf_invoice, str) and pdf_invoice.endswith('.pdf') and os.path.isfile(pdf_invoice):
             with open(pdf_invoice, 'rb') as f:
                 pdf_file = BytesIO(f.read())
         elif isinstance(pdf_invoice, str):
-            pdf_file = BytesIO(pdf_invoice)
+            pdf_file = BytesIO(pdf_invoice.encode('utf-8'))
         elif isinstance(pdf_invoice, file_types):
             pdf_file = pdf_invoice
         else:
@@ -58,7 +60,7 @@ class FacturX(object):
         self.pdf = pdf_file
 
         # PDF has metadata embedded
-        if xml is not None: 
+        if xml is not None:
             self.xml = xml
             self.flavor = xml_flavor.XMLFlavor(xml)
             logger.info('Read existing XML from PDF. Flavor: %s', self.flavor.name)
@@ -66,7 +68,7 @@ class FacturX(object):
         else:
             self.flavor, self.xml = xml_flavor.XMLFlavor.from_template(flavor, level)
             logger.info('PDF does not have XML embedded. Adding from template.')
-        
+
         self.flavor.check_xsd(self.xml)
         self._namespaces = self.xml.nsmap
 
@@ -102,13 +104,12 @@ class FacturX(object):
             value = datetime.strptime(value, '%Y%m%d')
         return value
 
-
     def __setitem__(self, field_name, value):
         path = self.flavor._get_xml_path(field_name)
         res = self.xml.xpath(path, namespaces=self._namespaces)
         if len(res) > 1:
             raise LookupError('Multiple nodes found for this path. Refusing to edit.')
-        
+
         if 'date' in field_name:
             assert isinstance(value, datetime), 'Please pass date values as DateTime() object.'
             value = value.strftime('%Y%m%d')
@@ -129,7 +130,6 @@ class FacturX(object):
         """
         pass
 
-
     def write_pdf(self, path):
         pdfwriter = FacturXPDFWriter(self)
         with open(path, 'wb') as output_f:
@@ -147,3 +147,82 @@ class FacturX(object):
         with open(path, 'wb') as f:
             f.write(self.xml_str)
 
+    def __make_dict(self):
+        field_file = os.path.join(os.path.dirname(__file__), 'flavors\\fields.yml')
+        req_list = []
+        with open(field_file, 'r') as f:
+            data = f.read()
+            dict_data = yaml.load(data)
+
+        for k, v in dict_data.items():
+            for kv, vv in v.items():
+                if kv == '_required':
+                    if vv is True:
+                        req_list.append(k)
+
+        factx_value = []
+        factx_key = []
+        zugf_key = []
+        zugf_value = []
+
+        for k, v in dict_data.items():
+            for item in req_list:
+                if k == item:
+                    for vk, vv in v.items():
+                        if vk == '_path':
+                            for vvk, vvv in vv.items():
+                                if vvk == 'factur-x':
+                                    factx_key.append(k)
+                                    factx_value.append(vvv)
+                                elif vvk == 'zugferd':
+                                    zugf_key.append(k)
+                                    zugf_value.append(vvv)
+
+        self.factx = {}
+
+        for i in range(len(factx_key)):
+            self.factx[factx_key[i]] = factx_value[i]
+
+        self.zugf = {}
+
+        for i in zugf_key:
+            for j in zugf_value:
+                self.zugf[i] = j
+
+    def __export_file(self, ns, xml_file_path, json_file_path):
+        self.__make_dict()
+        json_factx = {}
+
+        # xml_file_path = os.path.join(os.path.dirname(__file__), 'text.xml')
+
+        with open(xml_file_path, 'r') as xml_file:
+            tree = etree.parse(xml_file)
+
+            for k, v in self.factx.items():
+                try:
+                    r = tree.xpath(v, namespaces=ns)
+                    json_factx[k] = r[0].text
+                except IndexError:
+                    json_factx[k] = None
+
+        with open(json_file_path, 'w') as json_file:
+            json.dump(json_factx, json_file, indent=4, sort_keys=True)
+
+    def write_json_factx(self, xml_file_path, json_file_path='factur_x.json'):
+        ns = {'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+              'udt': 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100',
+              'rsm': 'urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100',
+              'ram': 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100',
+              'qdt': 'urn:un:unece:uncefact:data:standard:QualifiedDataType:100'
+              }
+
+        self.__export_file(ns, xml_file_path, json_file_path)
+
+    def write_json_zugfred(self, xml_file_path, json_file_path='zugfred_x.json'):
+        ns = {'udt': 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:15',
+              'ram': 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:12',
+              'rsm': 'urn:ferd:CrossIndustryDocument:invoice:1p0',
+              'xsi': 'http://www.w3.org/2001/XMLSchema-instance'
+              }
+
+        self.__export_file(ns, xml_file_path, json_file_path)
