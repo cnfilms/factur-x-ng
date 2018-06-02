@@ -188,6 +188,19 @@ class FacturX(object):
         for i in range(len(zugf_key)):
             self.zugf[zugf_key[i]] = zugf_value[i]
 
+        self.zugf_ns = {'udt': 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:15',
+              'ram': 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:12',
+              'rsm': 'urn:ferd:CrossIndustryDocument:invoice:1p0',
+              'xsi': 'http://www.w3.org/2001/XMLSchema-instance'
+              }
+
+        self.factx_ns = {'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+              'udt': 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100',
+              'rsm': 'urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100',
+              'ram': 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100',
+              'qdt': 'urn:un:unece:uncefact:data:standard:QualifiedDataType:100'
+              }
+
     def __export_file_from_xml(self, ns, xml_file_path, json_file_path, flavor):
         self.__make_dict()
         json_factx = {}
@@ -213,21 +226,12 @@ class FacturX(object):
             json.dump(json_factx, json_file, indent=4, sort_keys=True)
 
     def write_json_facturx(self, xml_file_path, json_file_path='factur_x.json'):
-        ns = {'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-              'udt': 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100',
-              'rsm': 'urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100',
-              'ram': 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100',
-              'qdt': 'urn:un:unece:uncefact:data:standard:QualifiedDataType:100'
-              }
+        ns = self.factx_ns
 
         self.__export_file_from_xml(ns, xml_file_path, json_file_path,  flavor='factur-x')
 
     def write_json_zugfred(self, xml_file_path, json_file_path='zugfred_x.json'):
-        ns = {'udt': 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:15',
-              'ram': 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:12',
-              'rsm': 'urn:ferd:CrossIndustryDocument:invoice:1p0',
-              'xsi': 'http://www.w3.org/2001/XMLSchema-instance'
-              }
+        ns = self.zugf_ns
 
         self.__export_file_from_xml(ns, xml_file_path, json_file_path, flavor='zugferd')
 
@@ -254,12 +258,7 @@ class FacturX(object):
 
     def write_json_facturx_from_pdf(self, pdf_path, json_file_path='facturx.json'):
         xml_data = self._xml_from_file(pdf_path)
-        ns = {'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-              'udt': 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100',
-              'rsm': 'urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100',
-              'ram': 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100',
-              'qdt': 'urn:un:unece:uncefact:data:standard:QualifiedDataType:100'
-              }
+        ns = self.factx_ns
 
         if xml_data is not None:
             self.__export_file_from_pdf(ns, xml_data, json_file_path, flavor='factur-x')
@@ -268,11 +267,7 @@ class FacturX(object):
 
     def write_json_zugfred_from_pdf(self, pdf_path, json_file_path='zugfred.json'):
         xml_data = self._xml_from_file(pdf_path)
-        ns = {'udt': 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:15',
-              'ram': 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:12',
-              'rsm': 'urn:ferd:CrossIndustryDocument:invoice:1p0',
-              'xsi': 'http://www.w3.org/2001/XMLSchema-instance'
-              }
+        ns = self.zugf_ns
 
         if xml_data is not None:
             self.__export_file_from_pdf(ns, xml_data, json_file_path, flavor='zugferd')
