@@ -198,16 +198,17 @@ class FacturX(object):
                   'qdt': 'urn:un:unece:uncefact:data:standard:QualifiedDataType:100'
                   }
 
-    def __export_file_from_xml(self, ns, xml_file_path, json_file_path):
+    def __export_file_from_xml(self, xml_file_path, json_file_path):
         self.__make_dict()
-        json_facturx = {}
+        json_output = {}
 
         flavor = xml_flavor.guess_flavor(self.xml)
-
         if flavor == 'factur-x':
+            ns = self.facturx_ns
             flavor_dict = self.facturx_dict_required
         elif flavor == 'zugferd':
             flavor_dict = self.zugferd_dict_required
+            ns = self.zugferd_ns
 
         with open(xml_file_path, 'r') as xml_file:
             tree = etree.parse(xml_file)
@@ -215,58 +216,42 @@ class FacturX(object):
             for k, v in flavor_dict.items():
                 try:
                     r = tree.xpath(v, namespaces=ns)
-                    json_facturx[k] = r[0].text
+                    json_output[k] = r[0].text
                 except IndexError:
-                    json_facturx[k] = None
+                    json_output[k] = None
 
         with open(json_file_path, 'w') as json_file:
-            json.dump(json_facturx, json_file, indent=4, sort_keys=True)
+            json.dump(json_output, json_file, indent=4, sort_keys=True)
 
-    def write_json_facturx(self, xml_file_path, json_file_path='facturx_from_xml.json'):
-        ns = self.facturx_ns
+    def write_json(self, xml_file_path, json_file_path='from_xml.json'):
+        self.__export_file_from_xml(xml_file_path, json_file_path)
 
-        self.__export_file_from_xml(ns, xml_file_path, json_file_path)
-
-    def write_json_zugferd(self, xml_file_path, json_file_path='zugferdx_from_xml.json'):
-        ns = self.zugferd_ns
-
-        self.__export_file_from_xml(ns, xml_file_path, json_file_path)
-
-    def __export_file_from_pdf(self, ns, tree, json_file_path):
+    def __export_file_from_pdf(self, tree, json_file_path):
         self.__make_dict()
-        json_factx = {}
+        json_output = {}
 
-        # xml_file_path = os.path.join(os.path.dirname(__file__), 'text.xml')
         flavor = xml_flavor.guess_flavor(self.xml)
         if flavor == 'factur-x':
             flavor_dict = self.facturx_dict_required
+            ns = self.facturx_ns
         elif flavor == 'zugferd':
             flavor_dict = self.zugferd_dict_required
+            ns = self.zugferd_ns
 
         for k, v in flavor_dict.items():
             try:
                 r = tree.xpath(v, namespaces=ns)
-                json_factx[k] = r[0].text
+                json_output[k] = r[0].text
             except IndexError:
-                json_factx[k] = None
+                json_output[k] = None
 
         with open(json_file_path, 'w') as json_file:
-            json.dump(json_factx, json_file, indent=4, sort_keys=True)
+            json.dump(json_output, json_file, indent=4, sort_keys=True)
 
-    def write_json_facturx_from_pdf(self, pdf_path, json_file_path='facturx_from_pdf.json'):
+    def write_json_from_pdf(self, pdf_path, json_file_path='facturx_from_pdf.json'):
         xml_data = self._xml_from_file(pdf_path)
-        ns = self.facturx_ns
 
         if xml_data is not None:
-            self.__export_file_from_pdf(ns, xml_data, json_file_path)
-        else:
-            logger.error("There is no embedded data in file")
-
-    def write_json_zugferd_from_pdf(self, pdf_path, json_file_path='zugferd_from_pdf.json'):
-        xml_data = self._xml_from_file(pdf_path)
-        ns = self.zugferd_ns
-
-        if xml_data is not None:
-            self.__export_file_from_pdf(ns, xml_data, json_file_path)
+            self.__export_file_from_pdf(xml_data, json_file_path)
         else:
             logger.error("There is no embedded data in file")
