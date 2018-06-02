@@ -148,69 +148,66 @@ class FacturX(object):
             f.write(self.xml_str)
 
     def __make_dict(self):
-        field_file = os.path.join(os.path.dirname(__file__), 'flavors\\fields.yml')
-        req_list = []
-        with open(field_file, 'r') as f:
-            data = f.read()
-            dict_data = yaml.load(data)
+        dict_data = xml_flavor.FIELDS
+        required_list = []
 
         for k, v in dict_data.items():
             for kv, vv in v.items():
                 if kv == '_required':
                     if vv is True:
-                        req_list.append(k)
+                        required_list.append(k)
 
-        factx_value = []
-        factx_key = []
-        zugf_key = []
-        zugf_value = []
+        facturx_value = []
+        facturx_key = []
+        zugferd_key = []
+        zugferd_value = []
 
         for k, v in dict_data.items():
-            for item in req_list:
+            for item in required_list:
                 if k == item:
                     for vk, vv in v.items():
                         if vk == '_path':
                             for vvk, vvv in vv.items():
                                 if vvk == 'factur-x':
-                                    factx_key.append(k)
-                                    factx_value.append(vvv)
+                                    facturx_key.append(k)
+                                    facturx_value.append(vvv)
                                 elif vvk == 'zugferd':
-                                    zugf_key.append(k)
-                                    zugf_value.append(vvv)
+                                    zugferd_key.append(k)
+                                    zugferd_value.append(vvv)
 
-        self.factx = {}
+        self.facturx_dict_required = {}
 
-        for i in range(len(factx_key)):
-            self.factx[factx_key[i]] = factx_value[i]
+        for i in range(len(facturx_key)):
+            self.facturx_dict_required[facturx_key[i]] = facturx_value[i]
 
-        self.zugf = {}
+        self.zugferd_dict_required = {}
 
-        for i in range(len(zugf_key)):
-            self.zugf[zugf_key[i]] = zugf_value[i]
+        for i in range(len(zugferd_key)):
+            self.zugferd_dict_required[zugferd_key[i]] = zugferd_value[i]
 
-        self.zugf_ns = {'udt': 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:15',
-              'ram': 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:12',
-              'rsm': 'urn:ferd:CrossIndustryDocument:invoice:1p0',
-              'xsi': 'http://www.w3.org/2001/XMLSchema-instance'
-              }
+    zugferd_ns = {'udt': 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:15',
+                  'ram': 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:12',
+                  'rsm': 'urn:ferd:CrossIndustryDocument:invoice:1p0',
+                  'xsi': 'http://www.w3.org/2001/XMLSchema-instance'
+                  }
 
-        self.factx_ns = {'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-              'udt': 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100',
-              'rsm': 'urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100',
-              'ram': 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100',
-              'qdt': 'urn:un:unece:uncefact:data:standard:QualifiedDataType:100'
-              }
+    facturx_ns = {'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+                  'udt': 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100',
+                  'rsm': 'urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100',
+                  'ram': 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100',
+                  'qdt': 'urn:un:unece:uncefact:data:standard:QualifiedDataType:100'
+                  }
 
-    def __export_file_from_xml(self, ns, xml_file_path, json_file_path, flavor):
+    def __export_file_from_xml(self, ns, xml_file_path, json_file_path):
         self.__make_dict()
-        json_factx = {}
+        json_facturx = {}
 
-        # xml_file_path = os.path.join(os.path.dirname(__file__), 'text.xml')
+        flavor = xml_flavor.guess_flavor(self.xml)
 
         if flavor == 'factur-x':
-            flavor_dict = self.factx
+            flavor_dict = self.facturx_dict_required
         elif flavor == 'zugferd':
-            flavor_dict = self.zugf
+            flavor_dict = self.zugferd_dict_required
 
         with open(xml_file_path, 'r') as xml_file:
             tree = etree.parse(xml_file)
@@ -218,33 +215,33 @@ class FacturX(object):
             for k, v in flavor_dict.items():
                 try:
                     r = tree.xpath(v, namespaces=ns)
-                    json_factx[k] = r[0].text
+                    json_facturx[k] = r[0].text
                 except IndexError:
-                    json_factx[k] = None
+                    json_facturx[k] = None
 
         with open(json_file_path, 'w') as json_file:
-            json.dump(json_factx, json_file, indent=4, sort_keys=True)
+            json.dump(json_facturx, json_file, indent=4, sort_keys=True)
 
-    def write_json_facturx(self, xml_file_path, json_file_path='factur_x.json'):
-        ns = self.factx_ns
+    def write_json_facturx(self, xml_file_path, json_file_path='facturx_from_xml.json'):
+        ns = self.facturx_ns
 
-        self.__export_file_from_xml(ns, xml_file_path, json_file_path,  flavor='factur-x')
+        self.__export_file_from_xml(ns, xml_file_path, json_file_path)
 
-    def write_json_zugfred(self, xml_file_path, json_file_path='zugfred_x.json'):
-        ns = self.zugf_ns
+    def write_json_zugferd(self, xml_file_path, json_file_path='zugferdx_from_xml.json'):
+        ns = self.zugferd_ns
 
-        self.__export_file_from_xml(ns, xml_file_path, json_file_path, flavor='zugferd')
+        self.__export_file_from_xml(ns, xml_file_path, json_file_path)
 
-    def __export_file_from_pdf(self, ns, tree, json_file_path, flavor):
+    def __export_file_from_pdf(self, ns, tree, json_file_path):
         self.__make_dict()
         json_factx = {}
 
         # xml_file_path = os.path.join(os.path.dirname(__file__), 'text.xml')
-
+        flavor = xml_flavor.guess_flavor(self.xml)
         if flavor == 'factur-x':
-            flavor_dict = self.factx
+            flavor_dict = self.facturx_dict_required
         elif flavor == 'zugferd':
-            flavor_dict = self.zugf
+            flavor_dict = self.zugferd_dict_required
 
         for k, v in flavor_dict.items():
             try:
@@ -256,20 +253,20 @@ class FacturX(object):
         with open(json_file_path, 'w') as json_file:
             json.dump(json_factx, json_file, indent=4, sort_keys=True)
 
-    def write_json_facturx_from_pdf(self, pdf_path, json_file_path='facturx.json'):
+    def write_json_facturx_from_pdf(self, pdf_path, json_file_path='facturx_from_pdf.json'):
         xml_data = self._xml_from_file(pdf_path)
-        ns = self.factx_ns
+        ns = self.facturx_ns
 
         if xml_data is not None:
-            self.__export_file_from_pdf(ns, xml_data, json_file_path, flavor='factur-x')
+            self.__export_file_from_pdf(ns, xml_data, json_file_path)
         else:
             logger.error("There is no embedded data in file")
 
-    def write_json_zugfred_from_pdf(self, pdf_path, json_file_path='zugfred.json'):
+    def write_json_zugferd_from_pdf(self, pdf_path, json_file_path='zugferd_from_pdf.json'):
         xml_data = self._xml_from_file(pdf_path)
-        ns = self.zugf_ns
+        ns = self.zugferd_ns
 
         if xml_data is not None:
-            self.__export_file_from_pdf(ns, xml_data, json_file_path, flavor='zugferd')
+            self.__export_file_from_pdf(ns, xml_data, json_file_path)
         else:
             logger.error("There is no embedded data in file")
