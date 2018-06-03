@@ -57,17 +57,19 @@ class XmlTree:
 
 
 class TestReading(unittest.TestCase):
-    def setUp(self):
+    def discover_files(self):
         self.test_files_dir = os.path.join(os.path.dirname(__file__), 'sample_invoices')
         self.test_files = os.listdir(self.test_files_dir)
 
     def test_from_file(self):
+        self.discover_files()
         for file in self.test_files:
             file_path = os.path.join(self.test_files_dir, file)
             FacturX(file_path)
 
     # returning file path for a specific file in 'sample_invoices'
     def find_file(self, file_name):
+        self.discover_files()
         for file in self.test_files:
             if file == file_name:
                 file_path = os.path.join(self.test_files_dir, file)
@@ -96,7 +98,7 @@ class TestReading(unittest.TestCase):
         # checking if pdf file is made
         factx.write_pdf(test_file_path)
         self.assertTrue(os.path.isfile(test_file_path))
-        self.setUp()
+        self.discover_files()
 
         # checking that xml is embedded
         if self.test_file_embedded_data(file_name='test.pdf') is None:
