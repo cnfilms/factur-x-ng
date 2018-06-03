@@ -147,43 +147,33 @@ class FacturX(object):
         with open(path, 'wb') as f:
             f.write(self.xml_str)
 
-    def __make_dict(self):
+    def __make_dict(self, flavor):
         dict_data = xml_flavor.FIELDS
         required_list = []
 
-        for k, v in dict_data.items():
-            for kv, vv in v.items():
-                if kv == '_required':
-                    if vv is True:
-                        required_list.append(k)
+        for label_key, label_value in dict_data.items():
+            for inside_label_key, inside_label_value in label_value.items():
+                if inside_label_key == '_required':
+                    if inside_label_value is True:
+                        required_list.append(label_key)
 
-        facturx_value = []
-        facturx_key = []
-        zugferd_key = []
-        zugferd_value = []
+        flavor_value = []
+        flavor_key = []
 
-        for k, v in dict_data.items():
+        for label_key, label_value in dict_data.items():
             for item in required_list:
-                if k == item:
-                    for vk, vv in v.items():
-                        if vk == '_path':
-                            for vvk, vvv in vv.items():
-                                if vvk == 'factur-x':
-                                    facturx_key.append(k)
-                                    facturx_value.append(vvv)
-                                elif vvk == 'zugferd':
-                                    zugferd_key.append(k)
-                                    zugferd_value.append(vvv)
+                if label_key == item:
+                    for inside_label_key, inside_label_value in label_value.items():
+                        if inside_label_key == '_path':
+                            for path_key, path_value in inside_label_value.items():
+                                if path_key == flavor:
+                                    flavor_key.append(label_key)
+                                    flavor_value.append(path_value)
 
-        self.facturx_dict_required = {}
+        self.flavor_dict_required = {}
 
-        for i in range(len(facturx_key)):
-            self.facturx_dict_required[facturx_key[i]] = facturx_value[i]
-
-        self.zugferd_dict_required = {}
-
-        for i in range(len(zugferd_key)):
-            self.zugferd_dict_required[zugferd_key[i]] = zugferd_value[i]
+        for i in range(len(flavor_key)):
+            self.flavor_dict_required[flavor_key[i]] = flavor_value[i]
 
     zugferd_ns = {'udt': 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:15',
                   'ram': 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:12',
@@ -198,45 +188,18 @@ class FacturX(object):
                   'qdt': 'urn:un:unece:uncefact:data:standard:QualifiedDataType:100'
                   }
 
-    def __export_file_from_xml(self, xml_file_path, json_file_path):
-        self.__make_dict()
+    def __export_file(self, tree, json_file_path):
+        flavor = xml_flavor.guess_flavor(tree)
+
+        self.__make_dict(flavor)
         json_output = {}
 
-        flavor = xml_flavor.guess_flavor(self.xml)
         if flavor == 'factur-x':
             ns = self.facturx_ns
-            flavor_dict = self.facturx_dict_required
         elif flavor == 'zugferd':
-            flavor_dict = self.zugferd_dict_required
             ns = self.zugferd_ns
 
-        with open(xml_file_path, 'r') as xml_file:
-            tree = etree.parse(xml_file)
-
-            for k, v in flavor_dict.items():
-                try:
-                    r = tree.xpath(v, namespaces=ns)
-                    json_output[k] = r[0].text
-                except IndexError:
-                    json_output[k] = None
-
-        with open(json_file_path, 'w') as json_file:
-            json.dump(json_output, json_file, indent=4, sort_keys=True)
-
-    def write_json(self, xml_file_path, json_file_path='from_xml.json'):
-        self.__export_file_from_xml(xml_file_path, json_file_path)
-
-    def __export_file_from_pdf(self, tree, json_file_path):
-        self.__make_dict()
-        json_output = {}
-
-        flavor = xml_flavor.guess_flavor(self.xml)
-        if flavor == 'factur-x':
-            flavor_dict = self.facturx_dict_required
-            ns = self.facturx_ns
-        elif flavor == 'zugferd':
-            flavor_dict = self.zugferd_dict_required
-            ns = self.zugferd_ns
+        flavor_dict = self.flavor_dict_required
 
         for k, v in flavor_dict.items():
             try:
@@ -248,10 +211,17 @@ class FacturX(object):
         with open(json_file_path, 'w') as json_file:
             json.dump(json_output, json_file, indent=4, sort_keys=True)
 
-    def write_json_from_pdf(self, pdf_path, json_file_path='facturx_from_pdf.json'):
+    def write_json_from_xml(self, xml_file_path, json_file_path='from_xml.json'):
+        with open(xml_file_path, 'r') as xml_file:
+            tree = etree.parse(xml_file)
+            tree = etree.fromstring(etree.tostring(tree))
+
+        self.__export_file(tree, json_file_path)
+
+    def write_json_from_pdf(self, pdf_path, json_file_path='from_pdf.json'):
         xml_data = self._xml_from_file(pdf_path)
 
         if xml_data is not None:
-            self.__export_file_from_pdf(xml_data, json_file_path)
+            self.__export_file(xml_data, json_file_path)
         else:
             logger.error("There is no embedded data in file")
