@@ -175,29 +175,13 @@ class FacturX(object):
         for i in range(len(flavor_key)):
             self.flavor_dict_required[flavor_key[i]] = flavor_value[i]
 
-    zugferd_ns = {'udt': 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:15',
-                  'ram': 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:12',
-                  'rsm': 'urn:ferd:CrossIndustryDocument:invoice:1p0',
-                  'xsi': 'http://www.w3.org/2001/XMLSchema-instance'
-                  }
-
-    facturx_ns = {'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-                  'udt': 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100',
-                  'rsm': 'urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100',
-                  'ram': 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100',
-                  'qdt': 'urn:un:unece:uncefact:data:standard:QualifiedDataType:100'
-                  }
-
     def __export_file(self, tree, json_file_path):
         flavor = xml_flavor.guess_flavor(tree)
 
         self.__make_dict(flavor)
         json_output = {}
 
-        if flavor == 'factur-x':
-            ns = self.facturx_ns
-        elif flavor == 'zugferd':
-            ns = self.zugferd_ns
+        ns = tree.nsmap
 
         flavor_dict = self.flavor_dict_required
 
@@ -215,7 +199,6 @@ class FacturX(object):
         with open(xml_file_path, 'r') as xml_file:
             tree = etree.parse(xml_file)
             tree = etree.fromstring(etree.tostring(tree))
-
         self.__export_file(tree, json_file_path)
 
     def write_json_from_pdf(self, pdf_path, json_file_path='from_pdf.json'):
