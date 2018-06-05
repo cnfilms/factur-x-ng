@@ -46,7 +46,7 @@ class FacturX(object):
             with open(pdf_invoice, 'rb') as f:
                 pdf_file = BytesIO(f.read())
         elif isinstance(pdf_invoice, str):
-            pdf_file = BytesIO(pdf_invoice.encode('utf-8'))
+            pdf_file = BytesIO(pdf_invoice)
         elif isinstance(pdf_invoice, file_types):
             pdf_file = pdf_invoice
         else:
