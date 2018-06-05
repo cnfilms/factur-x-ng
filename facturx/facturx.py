@@ -149,48 +149,42 @@ class FacturX(object):
 
     def __make_dict(self, flavor):
         dict_data = xml_flavor.FIELDS
-        required_list = []
 
+        required_list = None
         for label_key, label_value in dict_data.items():
-            for inside_label_key, inside_label_value in label_value.items():
-                if inside_label_key == '_required':
-                    if inside_label_value is True:
-                        required_list.append(label_key)
+            if '_required' in label_value and label_value['_required']:
+                if required_list is None:
+                    required_list = [label_key]
+                else:
+                    required_list.append(label_key)
 
-        flavor_value = []
-        flavor_key = []
-
+        self.flavor_dict_required = None
         for label_key, label_value in dict_data.items():
-            for item in required_list:
-                if label_key == item:
-                    for inside_label_key, inside_label_value in label_value.items():
-                        if inside_label_key == '_path':
-                            for path_key, path_value in inside_label_value.items():
-                                if path_key == flavor:
-                                    flavor_key.append(label_key)
-                                    flavor_value.append(path_value)
-
-        self.flavor_dict_required = {}
-
-        for i in range(len(flavor_key)):
-            self.flavor_dict_required[flavor_key[i]] = flavor_value[i]
+            if label_key in required_list and '_path' in label_value and flavor in label_value['_path']:
+                if self.flavor_dict_required is None:
+                    self.flavor_dict_required = {label_key: label_value['_path'][flavor]}
+                else:
+                    self.flavor_dict_required[label_key] = label_value['_path'][flavor]
 
     def __export_file(self, tree, json_file_path):
         flavor = xml_flavor.guess_flavor(tree)
-
         self.__make_dict(flavor)
-        json_output = {}
-
         ns = tree.nsmap
 
+        json_output = None
         flavor_dict = self.flavor_dict_required
-
         for k, v in flavor_dict.items():
             try:
                 r = tree.xpath(v, namespaces=ns)
-                json_output[k] = r[0].text
+                if json_output is None:
+                    json_output = {k: r[0].text}
+                else:
+                    json_output[k] = r[0].text
             except IndexError:
-                json_output[k] = None
+                if json_output is None:
+                    json_output = {k: None}
+                else:
+                    json_output[k] = None
 
         with open(json_file_path, 'w') as json_file:
             json.dump(json_output, json_file, indent=4, sort_keys=True)
@@ -204,7 +198,7 @@ class FacturX(object):
     def write_json_from_pdf(self, pdf_path, json_file_path='from_pdf.json'):
         xml_data = self._xml_from_file(pdf_path)
 
-        if xml_data is not None:
-            self.__export_file(xml_data, json_file_path)
-        else:
+        if xml_data is None:
             logger.error("There is no embedded data in file")
+        else:
+            self.__export_file(xml_data, json_file_path)
