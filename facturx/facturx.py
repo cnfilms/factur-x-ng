@@ -148,23 +148,23 @@ class FacturX(object):
             f.write(self.xml_str)
 
     def __make_dict(self, flavor):
-        dict_data = xml_flavor.FIELDS
+        fields_data = xml_flavor.FIELDS
 
         required_list = None
-        for label_key, label_value in dict_data.items():
-            if '_required' in label_value and label_value['_required']:
+        for field in fields_data.keys():
+            if fields_data[field]['_required']:
                 if required_list is None:
-                    required_list = [label_key]
+                    required_list = [field]
                 else:
-                    required_list.append(label_key)
+                    required_list.append(field)
 
         self.flavor_dict_required = None
-        for label_key, label_value in dict_data.items():
-            if label_key in required_list and '_path' in label_value and flavor in label_value['_path']:
+        for field in fields_data.keys():
+            if field in required_list:
                 if self.flavor_dict_required is None:
-                    self.flavor_dict_required = {label_key: label_value['_path'][flavor]}
+                    self.flavor_dict_required = {field: fields_data[field]['_path'][flavor]}
                 else:
-                    self.flavor_dict_required[label_key] = label_value['_path'][flavor]
+                    self.flavor_dict_required[field] = fields_data[field]['_path'][flavor]
 
     def __export_file(self, tree, json_file_path):
         flavor = xml_flavor.guess_flavor(tree)
