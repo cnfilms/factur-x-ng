@@ -147,50 +147,31 @@ class FacturX(object):
         with open(path, 'wb') as f:
             f.write(self.xml_str)
 
-    def __make_dict(self, flavor):
+    def __make_dict(self):
         fields_data = xml_flavor.FIELDS
+        flavor = self.flavor.name
 
-        self.flavor_dict_required = None
+        output_dict = None
         for field in fields_data.keys():
             if fields_data[field]['_required']:
-                if self.flavor_dict_required is None:
-                    self.flavor_dict_required = {field: fields_data[field]['_path'][flavor]}
-                else:
-                    self.flavor_dict_required[field] = fields_data[field]['_path'][flavor]
+                try:
+                    r = self.xml.xpath(fields_data[field]['_path'][flavor], namespaces=self._namespaces)
+                    if output_dict is None:
+                        output_dict = {field: r[0].text}
+                    else:
+                        output_dict[field] = r[0].text
+                except IndexError:
+                    if output_dict is None:
+                        output_dict = {field: None}
+                    else:
+                        output_dict[field] = None
 
-    def __export_file(self, tree, json_file_path):
-        flavor = xml_flavor.guess_flavor(tree)
-        self.__make_dict(flavor)
-        ns = tree.nsmap
+        return output_dict
 
-        json_output = None
-        flavor_dict = self.flavor_dict_required
-        for k, v in flavor_dict.items():
-            try:
-                r = tree.xpath(v, namespaces=ns)
-                if json_output is None:
-                    json_output = {k: r[0].text}
-                else:
-                    json_output[k] = r[0].text
-            except IndexError:
-                if json_output is None:
-                    json_output = {k: None}
-                else:
-                    json_output[k] = None
-
+    def write_json(self, json_file_path='output.json'):
+        json_output = self.__make_dict()
+        if json_output is None:
+            logger.error("JSON dict returned is empty")
         with open(json_file_path, 'w') as json_file:
+            logger.info("Exporting JSON to %s", json_file_path)
             json.dump(json_output, json_file, indent=4, sort_keys=True)
-
-    def write_json_from_xml(self, xml_file_path, json_file_path='from_xml.json'):
-        with open(xml_file_path, 'r') as xml_file:
-            tree = etree.parse(xml_file)
-            tree = etree.fromstring(etree.tostring(tree))
-        self.__export_file(tree, json_file_path)
-
-    def write_json_from_pdf(self, pdf_path, json_file_path='from_pdf.json'):
-        xml_data = self._xml_from_file(pdf_path)
-
-        if xml_data is None:
-            logger.error("There is no embedded data in file")
-        else:
-            self.__export_file(xml_data, json_file_path)
