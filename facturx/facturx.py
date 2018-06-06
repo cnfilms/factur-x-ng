@@ -153,18 +153,17 @@ class FacturX(object):
 
         output_dict = None
         for field in fields_data.keys():
-            if fields_data[field]['_required']:
-                try:
-                    r = self.xml.xpath(fields_data[field]['_path'][flavor], namespaces=self._namespaces)
-                    if output_dict is None:
-                        output_dict = {field: r[0].text}
-                    else:
-                        output_dict[field] = r[0].text
-                except IndexError:
-                    if output_dict is None:
-                        output_dict = {field: None}
-                    else:
-                        output_dict[field] = None
+            try:
+                r = self.xml.xpath(fields_data[field]['_path'][flavor], namespaces=self._namespaces)
+                if output_dict is None:
+                    output_dict = {field: r[0].text}
+                else:
+                    output_dict[field] = r[0].text
+            except IndexError:
+                if output_dict is None:
+                    output_dict = {field: None}
+                else:
+                    output_dict[field] = None
 
         return output_dict
 
