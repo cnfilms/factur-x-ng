@@ -150,17 +150,9 @@ class FacturX(object):
     def __make_dict(self, flavor):
         fields_data = xml_flavor.FIELDS
 
-        required_list = None
-        for field in fields_data.keys():
-            if fields_data[field]['_required']:
-                if required_list is None:
-                    required_list = [field]
-                else:
-                    required_list.append(field)
-
         self.flavor_dict_required = None
         for field in fields_data.keys():
-            if field in required_list:
+            if fields_data[field]['_required']:
                 if self.flavor_dict_required is None:
                     self.flavor_dict_required = {field: fields_data[field]['_path'][flavor]}
                 else:
