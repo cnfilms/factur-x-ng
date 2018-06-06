@@ -41,14 +41,13 @@ class FacturX(object):
     - pdf: underlying graphical PDF representation.
     - flavor: which flavor (Factur-x or Zugferd) to use.
     """
-
     def __init__(self, pdf_invoice, flavor='factur-x', level='minimum'):
         # Read PDF from path, pointer or string
         if isinstance(pdf_invoice, str) and pdf_invoice.endswith('.pdf') and os.path.isfile(pdf_invoice):
             with open(pdf_invoice, 'rb') as f:
                 pdf_file = BytesIO(f.read())
         elif isinstance(pdf_invoice, str):
-            pdf_file = BytesIO(pdf_invoice.encode('utf-8'))
+            pdf_file = BytesIO(pdf_invoice)
         elif isinstance(pdf_invoice, file_types):
             pdf_file = pdf_invoice
         else:
