@@ -33,10 +33,7 @@ class TestReading(unittest.TestCase):
 
     def test_file_embedded_data(self, file_name='embedded_data.pdf'):
         file_path = self.find_file(file_name)
-        if FacturX(file_path)._xml_from_file(file_path) is None:
-            self.assertTrue(False, "The PDF file has no embedded file")
-        else:
-            self.assertTrue(True)
+        self.assertTrue(FacturX(file_path)._xml_from_file(file_path) is not None, "The PDF file has no embedded file")
 
     def test_write_pdf(self):
         file_path = self.find_file('no_embedded_data.pdf')
@@ -49,10 +46,7 @@ class TestReading(unittest.TestCase):
         self.discover_files()
 
         # checking that xml is embedded
-        if self.test_file_embedded_data(file_name='test.pdf') is None:
-            self.assertTrue(True)
-        else:
-            self.assertTrue(False)
+        self.assertTrue(self.test_file_embedded_data(file_name='test.pdf') is None)
 
         os.remove(test_file_path)
 
@@ -73,9 +67,8 @@ class TestReading(unittest.TestCase):
             test_file_root = etree.XML(test_file.read(), parser)
             test_file_str = etree.tostring(test_file_root)
 
-        os.remove(test_file_path)
         self.assertTrue(expected_file_str == test_file_str, "Files don't match")
-
+        os.remove(test_file_path)
 
 
 def main():
