@@ -151,19 +151,13 @@ class FacturX(object):
         fields_data = xml_flavor.FIELDS
         flavor = self.flavor.name
 
-        output_dict = None
+        output_dict = {}
         for field in fields_data.keys():
             try:
                 r = self.xml.xpath(fields_data[field]['_path'][flavor], namespaces=self._namespaces)
-                if output_dict is None:
-                    output_dict = {field: r[0].text}
-                else:
-                    output_dict[field] = r[0].text
+                output_dict[field] = r[0].text
             except IndexError:
-                if output_dict is None:
-                    output_dict = {field: None}
-                else:
-                    output_dict[field] = None
+                output_dict[field] = None
 
         return output_dict
 
