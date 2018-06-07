@@ -11,6 +11,7 @@ import mimetypes
 import hashlib
 from PyPDF2 import PdfFileReader
 from PyPDF2.generic import IndirectObject
+import json
 
 from .flavors import xml_flavor
 from .logger import logger
@@ -163,3 +164,24 @@ class FacturX(object):
     def write_xml(self, path):
         with open(path, 'wb') as f:
             f.write(self.xml_str)
+
+    def __make_dict(self):
+        fields_data = xml_flavor.FIELDS
+        flavor = self.flavor.name
+
+        output_dict = {}
+        for field in fields_data.keys():
+            try:
+                r = self.xml.xpath(fields_data[field]['_path'][flavor], namespaces=self._namespaces)
+                output_dict[field] = r[0].text
+            except IndexError:
+                output_dict[field] = None
+
+        return output_dict
+
+    def write_json(self, json_file_path='output.json'):
+        json_output = self.__make_dict()
+        if self.is_valid():
+            with open(json_file_path, 'w') as json_file:
+                logger.info("Exporting JSON to %s", json_file_path)
+                json.dump(json_output, json_file, indent=4, sort_keys=True)
