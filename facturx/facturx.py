@@ -11,6 +11,7 @@ import mimetypes
 import hashlib
 from PyPDF2 import PdfFileReader
 from PyPDF2.generic import IndirectObject
+import json
 
 from .flavors import xml_flavor
 from .logger import logger
@@ -40,6 +41,7 @@ class FacturX(object):
     - pdf: underlying graphical PDF representation.
     - flavor: which flavor (Factur-x or Zugferd) to use.
     """
+
     def __init__(self, pdf_invoice, flavor='factur-x', level='minimum'):
         # Read PDF from path, pointer or string
         if isinstance(pdf_invoice, str) and pdf_invoice.endswith('.pdf') and os.path.isfile(pdf_invoice):
@@ -58,7 +60,7 @@ class FacturX(object):
         self.pdf = pdf_file
 
         # PDF has metadata embedded
-        if xml is not None: 
+        if xml is not None:
             self.xml = xml
             self.flavor = xml_flavor.XMLFlavor(xml)
             logger.info('Read existing XML from PDF. Flavor: %s', self.flavor.name)
@@ -66,7 +68,7 @@ class FacturX(object):
         else:
             self.flavor, self.xml = xml_flavor.XMLFlavor.from_template(flavor, level)
             logger.info('PDF does not have XML embedded. Adding from template.')
-        
+
         self.flavor.check_xsd(self.xml)
         self._namespaces = self.xml.nsmap
 
@@ -107,7 +109,7 @@ class FacturX(object):
         res = self.xml.xpath(path, namespaces=self._namespaces)
         if len(res) > 1:
             raise LookupError('Multiple nodes found for this path. Refusing to edit.')
-        
+
         if 'date' in field_name:
             assert isinstance(value, datetime), 'Please pass date values as DateTime() object.'
             value = value.strftime('%Y%m%d')
@@ -126,8 +128,25 @@ class FacturX(object):
 
         Returns: true/false (validation passed/failed)
         """
-        pass
+        # validate against XSD
+        try:
+            self.flavor.check_xsd(self.xml)
+        except Exception:
+            return False
 
+        # Check for required fields
+        fields_data = xml_flavor.FIELDS
+        for field in fields_data.keys():
+            if fields_data[field]['_required']:
+                r = self.xml.xpath(fields_data[field]['_path'][self.flavor.name], namespaces=self._namespaces)
+                if not len(r):
+                    logger.error("Required field '%s' is not present", field)
+                    return False
+                elif r[0].text is None:
+                    logger.error("Required field %s doesn't contain any value", field)
+                    return False
+
+        return True
     def write_pdf(self, path):
         pdfwriter = FacturXPDFWriter(self)
         with open(path, 'wb') as output_f:
@@ -145,3 +164,23 @@ class FacturX(object):
         with open(path, 'wb') as f:
             f.write(self.xml_str)
 
+    def __make_dict(self):
+        fields_data = xml_flavor.FIELDS
+        flavor = self.flavor.name
+
+        output_dict = {}
+        for field in fields_data.keys():
+            try:
+                r = self.xml.xpath(fields_data[field]['_path'][flavor], namespaces=self._namespaces)
+                output_dict[field] = r[0].text
+            except IndexError:
+                output_dict[field] = None
+
+        return output_dict
+
+    def write_json(self, json_file_path='output.json'):
+        json_output = self.__make_dict()
+        if self.is_valid():
+            with open(json_file_path, 'w') as json_file:
+                logger.info("Exporting JSON to %s", json_file_path)
+                json.dump(json_output, json_file, indent=4, sort_keys=True)
