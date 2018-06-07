@@ -147,6 +147,7 @@ class FacturX(object):
                     return False
 
         return True
+    
     def write_pdf(self, path):
         pdfwriter = FacturXPDFWriter(self)
         with open(path, 'wb') as output_f:
