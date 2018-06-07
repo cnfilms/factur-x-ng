@@ -185,5 +185,3 @@ class FacturX(object):
             with open(json_file_path, 'w') as json_file:
                 logger.info("Exporting JSON to %s", json_file_path)
                 json.dump(json_output, json_file, indent=4, sort_keys=True)
-        else:
-            logger.error("JSON dict returned is empty")
