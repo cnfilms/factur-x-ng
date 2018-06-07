@@ -40,6 +40,7 @@ class FacturX(object):
     - pdf: underlying graphical PDF representation.
     - flavor: which flavor (Factur-x or Zugferd) to use.
     """
+
     def __init__(self, pdf_invoice, flavor='factur-x', level='minimum'):
         # Read PDF from path, pointer or string
         if isinstance(pdf_invoice, str) and pdf_invoice.endswith('.pdf') and os.path.isfile(pdf_invoice):
@@ -58,7 +59,7 @@ class FacturX(object):
         self.pdf = pdf_file
 
         # PDF has metadata embedded
-        if xml is not None: 
+        if xml is not None:
             self.xml = xml
             self.flavor = xml_flavor.XMLFlavor(xml)
             logger.info('Read existing XML from PDF. Flavor: %s', self.flavor.name)
@@ -66,7 +67,7 @@ class FacturX(object):
         else:
             self.flavor, self.xml = xml_flavor.XMLFlavor.from_template(flavor, level)
             logger.info('PDF does not have XML embedded. Adding from template.')
-        
+
         self.flavor.check_xsd(self.xml)
         self._namespaces = self.xml.nsmap
 
@@ -102,13 +103,12 @@ class FacturX(object):
             value = datetime.strptime(value, '%Y%m%d')
         return value
 
-
     def __setitem__(self, field_name, value):
         path = self.flavor._get_xml_path(field_name)
         res = self.xml.xpath(path, namespaces=self._namespaces)
         if len(res) > 1:
             raise LookupError('Multiple nodes found for this path. Refusing to edit.')
-        
+
         if 'date' in field_name:
             assert isinstance(value, datetime), 'Please pass date values as DateTime() object.'
             value = value.strftime('%Y%m%d')
@@ -127,8 +127,25 @@ class FacturX(object):
 
         Returns: true/false (validation passed/failed)
         """
-        pass
+        # validate against XSD
+        try:
+            self.flavor.check_xsd(self.xml)
+        except Exception:
+            return False
 
+        # Check for required fields
+        fields_data = xml_flavor.FIELDS
+        for field in fields_data.keys():
+            if fields_data[field]['_required']:
+                r = self.xml.xpath(fields_data[field]['_path'][self.flavor.name], namespaces=self._namespaces)
+                if not len(r):
+                    logger.error("Required field '%s' is not present", field)
+                    return False
+                elif r[0].text is None:
+                    logger.error("Required field %s doesn't contain any value", field)
+                    return False
+
+        return True
 
     def write_pdf(self, path):
         pdfwriter = FacturXPDFWriter(self)
@@ -146,4 +163,3 @@ class FacturX(object):
     def write_xml(self, path):
         with open(path, 'wb') as f:
             f.write(self.xml_str)
-
