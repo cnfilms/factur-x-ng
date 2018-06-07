@@ -11,7 +11,7 @@
         <ram:ID></ram:ID>
         <ram:TypeCode>380</ram:TypeCode>
         <ram:IssueDateTime>
-            <udt:DateTimeString format=""></udt:DateTimeString>
+            <udt:DateTimeString format="102"></udt:DateTimeString>
         </ram:IssueDateTime>
         <ram:IncludedNote>
             <ram:Content></ram:Content>
@@ -94,7 +94,7 @@
         <ram:ApplicableHeaderTradeDelivery>
             <ram:ActualDeliverySupplyChainEvent>
                 <ram:OccurrenceDateTime>
-                    <udt:DateTimeString format=""></udt:DateTimeString>
+                    <udt:DateTimeString format="102"></udt:DateTimeString>
                 </ram:OccurrenceDateTime>
             </ram:ActualDeliverySupplyChainEvent>
             <ram:DespatchAdviceReferencedDocument>
@@ -134,7 +134,7 @@
             </ram:SpecifiedTradeAllowanceCharge>
             <ram:SpecifiedTradePaymentTerms>
                 <ram:DueDateDateTime>
-                    <udt:DateTimeString format=""></udt:DateTimeString>
+                    <udt:DateTimeString format="102"></udt:DateTimeString>
                 </ram:DueDateDateTime>
             </ram:SpecifiedTradePaymentTerms>
             <ram:SpecifiedTradeSettlementHeaderMonetarySummation>

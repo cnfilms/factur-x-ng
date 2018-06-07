@@ -11,7 +11,7 @@
 		<ram:ID></ram:ID>
 		<ram:Name></ram:Name>
 		<ram:TypeCode>380</ram:TypeCode>
-		<ram:IssueDateTime><udt:DateTimeString format=""></udt:DateTimeString></ram:IssueDateTime>
+		<ram:IssueDateTime><udt:DateTimeString format="102"></udt:DateTimeString></ram:IssueDateTime>
 		<ram:IncludedNote>
 			<ram:Content></ram:Content>
 		</ram:IncludedNote>
@@ -51,7 +51,7 @@
 		</ram:ApplicableSupplyChainTradeAgreement>
 		<ram:ApplicableSupplyChainTradeDelivery>
 			<ram:ActualDeliverySupplyChainEvent>
-				<ram:OccurrenceDateTime><udt:DateTimeString format=""></udt:DateTimeString> </ram:OccurrenceDateTime>
+				<ram:OccurrenceDateTime><udt:DateTimeString format="102"></udt:DateTimeString> </ram:OccurrenceDateTime>
 			</ram:ActualDeliverySupplyChainEvent>
 		</ram:ApplicableSupplyChainTradeDelivery>
 		<ram:ApplicableSupplyChainTradeSettlement>
@@ -76,7 +76,7 @@
 			</ram:ApplicableTradeTax>
 			<ram:SpecifiedTradePaymentTerms>
 				<ram:Description></ram:Description>
-				<ram:DueDateDateTime><udt:DateTimeString format=""></udt:DateTimeString></ram:DueDateDateTime>
+				<ram:DueDateDateTime><udt:DateTimeString format="102"></udt:DateTimeString></ram:DueDateDateTime>
 			</ram:SpecifiedTradePaymentTerms>
 			<ram:SpecifiedTradeSettlementMonetarySummation>
 				<ram:LineTotalAmount currencyID="EUR">0</ram:LineTotalAmount>
