@@ -12,7 +12,6 @@ if mo:
     verstr = mo.group(1)
 else:
     raise RuntimeError("Unable to find version string in %s." % (VERSIONFILE))
-
 setup(
     name='factur-x',
     version=verstr,
@@ -20,7 +19,19 @@ setup(
     author_email='alexis.delattre@akretion.com',
     url='https://github.com/akretion/factur-x',
     description='Factur-X: electronic invoicing standard for Germany & France',
-    long_description=open('README.md').read(),
+    long_description=open('README.rst').read(),
+    package_data = {
+            'facturx.flavors': [
+                '*.yml',
+                'factur-x/xml/*.xml',
+                'factur-x/xmp/*.xmp',
+                'factur-x/xsd/*.xsd',
+                'zugferd/xml/*.xml',
+                'zugferd/xmp/*.xmp',
+                'zugferd/xsd/*.xsd',
+            ],
+            'facturx.tests': ['sample_invoices/*.pdf']
+            },
     license='BSD',
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -34,9 +45,11 @@ setup(
     install_requires=[r.strip() for r in
                       open('requirement.txt').read().splitlines()],
     include_package_data=True,
-    scripts=[
-        'bin/facturx-pdfgen',
-        'bin/facturx-pdfextractxml',
-        'bin/facturx-xmlcheck'],
     zip_safe=False,
+    entry_points={
+                  'console_scripts': [
+                      'facturx = facturx.facturx:main',
+                  ],
+              },
 )
+

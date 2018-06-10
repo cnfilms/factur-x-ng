@@ -12,6 +12,7 @@ import hashlib
 from PyPDF2 import PdfFileReader
 from PyPDF2.generic import IndirectObject
 import json
+import argparse
 
 from .flavors import xml_flavor
 from .logger import logger
@@ -55,7 +56,7 @@ class FacturX(object):
             raise TypeError(
                 "The first argument of the method get_facturx_xml_from_pdf must "
                 "be either a string or a file (it is a %s)." % type(pdf_invoice))
-
+        print(pdf_file)
         xml = self._xml_from_file(pdf_file)
         self.pdf = pdf_file
 
@@ -185,3 +186,35 @@ class FacturX(object):
             with open(json_file_path, 'w') as json_file:
                 logger.info("Exporting JSON to %s", json_file_path)
                 json.dump(json_output, json_file, indent=4, sort_keys=True)
+
+
+def init():
+    parser = argparse.ArgumentParser(
+        description='PDF invoice with embedded XML metadata following the Factur-X standard')
+    subparsers = parser.add_subparsers(help='sub-command help', dest="sub_command")
+
+    parser_dump = subparsers.add_parser('dump', help='dump xml meta data to xml|json, takes two arguments')
+    parser_dump.add_argument('pdf_invoice', type=argparse.FileType('r'),
+                             help='pdf invoice containing embedded xml')
+    parser_dump.add_argument('output_file', type=str, help='name of export file')
+
+    parser_validate = subparsers.add_parser('validate', help='validate xml meta data from pdf invoice')
+    parser_validate.add_argument('pdf_invoice', type=argparse.FileType('r'), help='pdf invoice to validate')
+
+    args = parser.parse_args()
+
+    if args.sub_command == 'dump':
+        factx = FacturX(args.pdf_invoice.name)
+        factx.write_json(args.pdf_invoice.name)
+
+    if args.sub_command == 'validate':
+        factx = FacturX(args.pdf_invoice.name)
+        factx.is_valid()
+
+
+def main():
+    init()
+
+
+if __name__ == '__main__':
+    main()
