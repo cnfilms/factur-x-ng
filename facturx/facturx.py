@@ -96,9 +96,6 @@ class FacturX(object):
                     return xml_content
 
     def __getitem__(self, field_name):
-        if '.' in field_name:
-            field_name = field_name.replace('.', '_')
-
         path = self.flavor._get_xml_path(field_name)
         value = self.xml.xpath(path, namespaces=self._namespaces)
         if value is not None:
