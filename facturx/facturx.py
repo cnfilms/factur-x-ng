@@ -68,6 +68,7 @@ class FacturX(object):
         else:
             self.flavor, self.xml = xml_flavor.XMLFlavor.from_template(flavor, level)
             logger.info('PDF does not have XML embedded. Adding from template.')
+            self._add_default_to_xml()
 
         self.flavor.check_xsd(self.xml)
         self._namespaces = self.xml.nsmap
@@ -95,10 +96,17 @@ class FacturX(object):
                         xml_filename)
                     return xml_content
 
+    def _add_default_to_xml(self):
+        fields_data = xml_flavor.FIELDS
+
+        for field, values in fields_data.items():
+            if '_default' in values and self[field] is None:
+                self[field] = fields_data[field]['_default']
+
     def __getitem__(self, field_name):
         path = self.flavor._get_xml_path(field_name)
-        value = self.xml.xpath(path, namespaces=self._namespaces)
-        if value is not None:
+        value = self.xml.xpath(path, namespaces=self.xml.nsmap)
+        if len(value) > 0:
             value = value[0].text
         if 'date' in field_name:
             value = datetime.strptime(value, '%Y%m%d')
@@ -106,7 +114,7 @@ class FacturX(object):
 
     def __setitem__(self, field_name, value):
         path = self.flavor._get_xml_path(field_name)
-        res = self.xml.xpath(path, namespaces=self._namespaces)
+        res = self.xml.xpath(path, namespaces=self.xml.nsmap)
         if len(res) > 1:
             raise LookupError('Multiple nodes found for this path. Refusing to edit.')
 
