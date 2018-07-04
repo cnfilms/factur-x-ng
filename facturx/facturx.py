@@ -147,21 +147,12 @@ class FacturX(object):
                     return False
 
         # Check for country code (ISO:3166)
-        with open(os.path.join(os.path.dirname(__file__),'standards/country_code_iso_3166.json'), 'r') as country_code_file:
-            country_code_dict = json.load(country_code_file)
-            if self['seller_country'] not in country_code_dict:
-                logger.error("%s is not a valid country code", self['seller_country'])
-                return False
-            if self['buyer_country'] not in country_code_dict:
-                logger.error("%s is not a valid country code", self['buyer_country'])
-                return False
+        if self.flavor.valid_country_code(self['seller_country'], self['buyer_country']) is False:
+            return False
 
         # Check for currency code (ISO:4217)
-        with open(os.path.join(os.path.dirname(__file__), 'standards/currency_code_iso_4217.json'), 'r') as currency_code_file:
-            currency_code_dict = json.load(currency_code_file)
-            if self['currency'] not in currency_code_dict:
-                logger.error("%s is not a valid currency code", self['currency'])
-                return False
+        if self.flavor.valid_currency_code(self['currency']) is False:
+            return False
 
         return True
 
