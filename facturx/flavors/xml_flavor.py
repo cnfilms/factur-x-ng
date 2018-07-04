@@ -133,7 +133,7 @@ def guess_flavor(facturx_xml_etree):
         if facturx_xml_etree.xpath('//cbc:UBLVersionID', namespaces=facturx_xml_etree.nsmap) == '2.0':
             flavor = 'ubl2-0'
         elif facturx_xml_etree.xpath('//cbc:UBLVersionID', namespaces=facturx_xml_etree.nsmap) == '2.1':
-            flavor = 'ubl2-0'
+            flavor = 'ubl2-1'
     else:
         raise Exception(
             "Could not detect if the invoice is a Factur-X or ZUGFeRD "
