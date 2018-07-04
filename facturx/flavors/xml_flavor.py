@@ -120,19 +120,17 @@ class XMLFlavor(object):
     def valid_country_code(self, seller_country, buyer_country):
         with open(os.path.join(os.path.dirname(__file__),'standard_code/country_code.json'), 'r') as country_code_file:
                 country_code_dict = json.load(country_code_file)
-                if country_code_dict[self.name]['valid']:
-                    if seller_country not in country_code_dict[self.name]['codes']:
-                        logger.error("%s is not a valid country code", seller_country)
-                        return False
-                    if buyer_country not in country_code_dict[self.name]['codes']:
-                        logger.error("%s is not a valid country code", buyer_country)
-                        return False
+                if country_code_dict[self.name]['valid'] and seller_country not in country_code_dict[self.name]['codes']:
+                    logger.error("%s is not a valid country code", seller_country)
+                    return False
+                if country_code_dict[self.name]['valid'] and buyer_country not in country_code_dict[self.name]['codes']:
+                    logger.error("%s is not a valid country code", buyer_country)
+                    return False
 
     def valid_currency_code(self, currency):
         with open(os.path.join(os.path.dirname(__file__), 'standard_code/currency_code.json'), 'r') as currency_code_file:
             currency_code_dict = json.load(currency_code_file)
-            if currency_code_dict[self.name]['valid']:
-                if currency not in currency_code_dict[self.name]['codes']:
+            if currency_code_dict[self.name]['valid'] and currency not in currency_code_dict[self.name]['codes']:
                     logger.error("%s is not a valid currency code", currency)
                     return False
 
