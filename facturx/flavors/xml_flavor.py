@@ -129,6 +129,11 @@ def guess_flavor(facturx_xml_etree):
         flavor = 'factur-x'
     elif facturx_xml_etree.tag.startswith('{urn:ferd:'):
         flavor = 'zugferd'
+    elif facturx_xml_etree.tag.startswith('{urn:oasis:names:specification:ubl:'):
+        if facturx_xml_etree.xpath('//cbc:UBLVersionID', namespaces=facturx_xml_etree.nsmap) == '2.0':
+            flavor = 'ubl2-0'
+        elif facturx_xml_etree.xpath('//cbc:UBLVersionID', namespaces=facturx_xml_etree.nsmap) == '2.1':
+            flavor = 'ubl2-0'
     else:
         raise Exception(
             "Could not detect if the invoice is a Factur-X or ZUGFeRD "

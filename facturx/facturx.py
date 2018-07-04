@@ -94,6 +94,15 @@ class FacturX(object):
                         'A valid XML file %s has been found in the PDF file',
                         xml_filename)
                     return xml_content
+                else:
+                    xml_root = etree.fromstring(obj['/EF']['/F'].getData())
+                    if xml_root.tag.startswith('{urn:oasis:names:specification:ubl:'):
+                        xml_content = xml_root
+                        xml_filename = obj['/F']
+                        logger.info(
+                            'A valid XML file %s has been found in the PDF file',
+                            xml_filename)
+                        return xml_content
 
     def __getitem__(self, field_name):
         path = self.flavor._get_xml_path(field_name)
