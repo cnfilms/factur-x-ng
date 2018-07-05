@@ -11,7 +11,7 @@ Data kept for each flavor:
 
 import os
 import yaml
-import json
+import csv
 from lxml import etree
 from io import BytesIO
 from pkg_resources import resource_filename
@@ -117,22 +117,19 @@ class XMLFlavor(object):
         else:
             raise KeyError('Path not defined for currenct flavor.')
 
-    def valid_country_code(self, seller_country, buyer_country):
-        with open(os.path.join(os.path.dirname(__file__),'standard_code/country_code.json'), 'r') as country_code_file:
-                country_code_dict = json.load(country_code_file)
-                if country_code_dict[self.name]['valid'] and seller_country not in country_code_dict[self.name]['codes']:
-                    logger.error("%s is not a valid country code", seller_country)
-                    return False
-                if country_code_dict[self.name]['valid'] and buyer_country not in country_code_dict[self.name]['codes']:
-                    logger.error("%s is not a valid country code", buyer_country)
-                    return False
-
-    def valid_currency_code(self, currency):
-        with open(os.path.join(os.path.dirname(__file__), 'standard_code/currency_code.json'), 'r') as currency_code_file:
-            currency_code_dict = json.load(currency_code_file)
-            if currency_code_dict[self.name]['valid'] and currency not in currency_code_dict[self.name]['codes']:
-                    logger.error("%s is not a valid currency code", currency)
-                    return False
+    def valid_code(self, type_code, code_to_check):
+        if FLAVORS[self.name]['standards'][type_code]:
+            with open(os.path.join(os.path.dirname(__file__), 'standard_code/codes.csv'), 'r') as code_file:
+                reader = csv.DictReader(code_file)
+                for row in reader:
+                    if ',' in row[type_code]:  # a few countries have multiple codes
+                        two_code = row[type_code].split(',')
+                        if code_to_check in two_code:
+                            return None
+                    elif code_to_check == row[type_code]:
+                        return None
+                logger.error("%s is not a valid %s code" % (code_to_check, type_code))
+                return False
 
 def valid_xmp_filenames():
     result = []

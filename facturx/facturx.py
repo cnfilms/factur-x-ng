@@ -146,13 +146,15 @@ class FacturX(object):
                     logger.error("Required field %s doesn't contain any value", field)
                     return False
 
-        # Check for country code (ISO:3166)
-        if self.flavor.valid_country_code(self['seller_country'], self['buyer_country']) is False:
-            return False
-
-        # Check for currency code (ISO:4217)
-        if self.flavor.valid_currency_code(self['currency']) is False:
-            return False
+        # Check for codes (ISO:3166, ISO:4217)
+        codes_to_check = {
+            'currency': 'currency',
+            'country': 'seller_country',
+            'country': 'buyer_country'
+        }
+        for type_code, field in codes_to_check.items():
+            if self.flavor.valid_code(type_code, self[field]) is False:
+                return False
 
         return True
 
