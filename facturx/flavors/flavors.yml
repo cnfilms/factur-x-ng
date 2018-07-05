@@ -37,7 +37,7 @@ zugferd:
       xmp_str: COMFORT
       xml: comfort.xml
   standards:
-    country: true
+    country: false
     currency: true
 other-standard:
   xmp_filename: something.xml
