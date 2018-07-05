@@ -150,7 +150,8 @@ class FacturX(object):
         codes_to_check = {
             'currency': 'currency',
             'country': 'seller_country',
-            'country': 'buyer_country'
+            'country': 'buyer_country',
+            'country': 'shipping_country'
         }
         for type_code, field in codes_to_check.items():
             if self.flavor.valid_code(type_code, self[field]) is False:
