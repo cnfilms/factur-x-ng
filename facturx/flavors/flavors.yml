@@ -21,6 +21,9 @@ factur-x:
       schema: FACTUR-X_EN16931.xsd
       xmp_str: EN 16931
       xml: en16931.xml
+  standards:
+    country: true
+    currency: true
 zugferd:
   xmp_schema: ZUGFeRD_extension_schema.xmp
   xmp_filename: ZUGFeRD-invoice.xml
@@ -33,5 +36,8 @@ zugferd:
       schema: ZUGFeRD1p0.xsd
       xmp_str: COMFORT
       xml: comfort.xml
+  standards:
+    country: false
+    currency: true
 other-standard:
   xmp_filename: something.xml
