@@ -196,3 +196,10 @@ class FacturX(object):
             with open(json_file_path, 'w') as json_file:
                 logger.info("Exporting JSON to %s", json_file_path)
                 json.dump(json_output, json_file, indent=4, sort_keys=True)
+      
+    def write_yaml(self, yml_file_path='output.yml'):
+        yml_output = self.__make_dict()
+        if self.is_valid():
+            with open(yml_file_path, 'w') as yml_file:
+                logger.info("Exporting YAML to %s", yml_file_path)
+                yaml.dump(yml_output, yml_file, default_flow_style=False)
