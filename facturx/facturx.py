@@ -56,7 +56,6 @@ class FacturX(object):
             raise TypeError(
                 "The first argument of the method get_facturx_xml_from_pdf must "
                 "be either a string or a file (it is a %s)." % type(pdf_invoice))
-        print(pdf_file)
         xml = self._xml_from_file(pdf_file)
         self.pdf = pdf_file
 
@@ -183,7 +182,6 @@ class FacturX(object):
 
         output_dict = {}
         for field in fields_data.keys():
-            print(field)
             try:
                 if fields_data[field]['_path'][flavor] is not None:
                     r = self.xml.xpath(fields_data[field]['_path'][flavor],

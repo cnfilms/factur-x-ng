@@ -20,18 +20,6 @@ setup(
     url='https://github.com/akretion/factur-x',
     description='Factur-X: electronic invoicing standard for Germany & France',
     long_description=open('README.rst').read(),
-    package_data = {
-            'facturx.flavors': [
-                '*.yml',
-                'factur-x/xml/*.xml',
-                'factur-x/xmp/*.xmp',
-                'factur-x/xsd/*.xsd',
-                'zugferd/xml/*.xml',
-                'zugferd/xmp/*.xmp',
-                'zugferd/xsd/*.xsd',
-            ],
-            'facturx.tests': ['sample_invoices/*.pdf']
-            },
     license='BSD',
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -47,9 +35,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     entry_points={
-                  'console_scripts': [
-                      'facturx = facturx.facturx:main',
-                  ],
-              },
+        'console_scripts': [
+            'facturx = facturx.facturx:main', ],
+    },
 )
-
