@@ -147,8 +147,19 @@ class FacturX(object):
                     logger.error("Required field %s doesn't contain any value", field)
                     return False
 
+        # Check for codes (ISO:3166, ISO:4217)
+        codes_to_check = {
+            'currency': 'currency',
+            'country': 'seller_country',
+            'country': 'buyer_country',
+            'country': 'shipping_country'
+        }
+        for type_code, field in codes_to_check.items():
+            if self.flavor.valid_code(type_code, self[field]) is False:
+                return False
+
         return True
-    
+
     def write_pdf(self, path):
         pdfwriter = FacturXPDFWriter(self)
         with open(path, 'wb') as output_f:
@@ -186,6 +197,13 @@ class FacturX(object):
             with open(json_file_path, 'w') as json_file:
                 logger.info("Exporting JSON to %s", json_file_path)
                 json.dump(json_output, json_file, indent=4, sort_keys=True)
+
+    def write_yaml(self, yml_file_path='output.yml'):
+        yml_output = self.__make_dict()
+        if self.is_valid():
+            with open(yml_file_path, 'w') as yml_file:
+                logger.info("Exporting YAML to %s", yml_file_path)
+                yaml.dump(yml_output, yml_file, default_flow_style=False)
 
 
 def init():
