@@ -190,22 +190,28 @@ class FacturX(object):
 
 def init():
     parser = argparse.ArgumentParser(
-        description='PDF invoice with embedded XML metadata following the Factur-X standard')
-    subparsers = parser.add_subparsers(help='sub-command help', dest="sub_command")
+        description='PDF invoice with embedded XML' +
+        ' metadata following the Factur-X standard')
+    subparsers = parser.add_subparsers(
+        help='sub-command help', dest="sub_command")
 
-    parser_dump = subparsers.add_parser('dump', help='dump xml meta data to xml|json, takes two arguments')
+    parser_dump = subparsers.add_parser(
+        'dump', help='dump xml meta data to xml|json, takes two arguments')
     parser_dump.add_argument('pdf_invoice', type=argparse.FileType('r'),
                              help='pdf invoice containing embedded xml')
-    parser_dump.add_argument('output_file', type=str, help='name of export file')
+    parser_dump.add_argument(
+        'output_file', type=str, help='name of export file')
 
-    parser_validate = subparsers.add_parser('validate', help='validate xml meta data from pdf invoice')
-    parser_validate.add_argument('pdf_invoice', type=argparse.FileType('r'), help='pdf invoice to validate')
+    parser_validate = subparsers.add_parser(
+        'validate', help='validate xml meta data from pdf invoice')
+    parser_validate.add_argument('pdf_invoice', type=argparse.FileType('r'),
+                                 help='pdf invoice to validate')
 
     args = parser.parse_args()
 
     if args.sub_command == 'dump':
         factx = FacturX(args.pdf_invoice.name)
-        factx.write_json(args.pdf_invoice.name)
+        factx.write_json(args.output_file)
 
     if args.sub_command == 'validate':
         factx = FacturX(args.pdf_invoice.name)
