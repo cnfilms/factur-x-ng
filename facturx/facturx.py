@@ -183,9 +183,12 @@ class FacturX(object):
 
         output_dict = {}
         for field in fields_data.keys():
+            print(field)
             try:
-                r = self.xml.xpath(fields_data[field]['_path'][flavor], namespaces=self._namespaces)
-                output_dict[field] = r[0].text
+                if fields_data[field]['_path'][flavor] is not None:
+                    r = self.xml.xpath(fields_data[field]['_path'][flavor],
+                                       namespaces=self._namespaces)
+                    output_dict[field] = r[0].text
             except IndexError:
                 output_dict[field] = None
 
@@ -229,7 +232,16 @@ def init():
 
     if args.sub_command == 'dump':
         factx = FacturX(args.pdf_invoice.name)
-        factx.write_json(args.output_file)
+        try:
+            output_format = args.output_file.split('.')[1]
+            if output_format == 'json':
+                factx.write_json(args.output_file)
+            elif output_format == 'xml':
+                factx.write_xml(args.output_file)
+            elif output_format == 'yml':
+                factx.write_yaml(args.output_file)
+        except IndexError:
+            logger.error("No extension to output file provided")
 
     if args.sub_command == 'validate':
         factx = FacturX(args.pdf_invoice.name)
