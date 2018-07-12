@@ -82,17 +82,32 @@ notes:
         ubl2-0: //cbc:Note
         ubl2-1: //cbc:Note
     _required: false
-seller:
+seller_name:
     _path:
         factur-x: //rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:Name
         zugferd: //rsm:SpecifiedSupplyChainTradeTransaction/ram:ApplicableSupplyChainTradeAgreement/ram:SellerTradeParty/ram:Name
         ubl2-0: //cac:AccountingSupplierParty/cac:Party/cac:PartyName/cbc:Name
         ubl2-1: //cac:AccountingSupplierParty/cac:Party/cac:PartyName/cbc:Name
     _required: true
-buyer:
+seller_country:
+    _path:
+        factur-x: //rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:PostalTradeAddress/ram:CountryID
+        zugferd: //rsm:SpecifiedSupplyChainTradeTransaction/ram:ApplicableSupplyChainTradeAgreement/ram:SellerTradeParty/ram:PostalTradeAddress/ram:CountryID
+    _required: true
+buyer_name:
     _path:
         factur-x: //rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:Name
         zugferd: //rsm:SpecifiedSupplyChainTradeTransaction/ram:ApplicableSupplyChainTradeAgreement/ram:BuyerTradeParty/ram:Name
         ubl2-0: //cac:AccountingCustomerParty/cac:Party/cac:PartyName/cbc:Name
         ubl2-1: //cac:AccountingCustomerParty/cac:Party/cac:PartyName/cbc:Name
     _required: true
+buyer_country:
+    _path:
+        factur-x: //rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:PostalTradeAddress/ram:CountryID
+        zugferd: //rsm:SpecifiedSupplyChainTradeTransaction/ram:ApplicableSupplyChainTradeAgreement/ram:BuyerTradeParty/ram:PostalTradeAddress/ram:CountryID
+    _required: false
+shipping_country:
+    _path:
+        factur-x: //rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeDelivery/ram:ShipToTradeParty/ram:PostalTradeAddress/ram:CountryID
+        zugferd: null
+    _required: false
