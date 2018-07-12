@@ -71,6 +71,9 @@ class FacturX(object):
 
         self.flavor.check_xsd(self.xml)
         self._namespaces = self.xml.nsmap
+        if None in self._namespaces:
+            self._namespaces['some_ns'] = self._namespaces[None]
+            self._namespaces.pop(None)
 
     def read_xml(self):
         """Use XML data from external file. Replaces existing XML or template."""

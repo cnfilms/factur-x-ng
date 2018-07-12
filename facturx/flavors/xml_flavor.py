@@ -59,6 +59,9 @@ class XMLFlavor(object):
         if not isinstance(facturx_xml_etree, type(etree.Element('pouet'))):
             raise ValueError('facturx_xml_etree must be an etree.Element() object')
         namespaces = facturx_xml_etree.nsmap
+        if None in namespaces:
+            namespaces['some_ns'] = namespaces[None]
+            namespaces.pop(None)
         doc_id_xpath = facturx_xml_etree.xpath(self._get_xml_path('version'), namespaces=namespaces)
         if not doc_id_xpath:
             raise ValueError("Version field not found.")
@@ -116,11 +119,13 @@ class XMLFlavor(object):
         else:
             raise KeyError('Path not defined for currenct flavor.')
 
+
 def valid_xmp_filenames():
     result = []
     for flavor in FLAVORS.keys():
         result.append(FLAVORS[flavor]['xmp_filename'])
     return result
+
 
 def guess_flavor(facturx_xml_etree):
     if not isinstance(facturx_xml_etree, type(etree.Element('pouet'))):
@@ -130,13 +135,21 @@ def guess_flavor(facturx_xml_etree):
     elif facturx_xml_etree.tag.startswith('{urn:ferd:'):
         flavor = 'zugferd'
     elif facturx_xml_etree.tag.startswith('{urn:oasis:names:specification:ubl:'):
-        if facturx_xml_etree.xpath('//cbc:UBLVersionID', namespaces=facturx_xml_etree.nsmap) == '2.0':
+        # https://stackoverflow.com/a/6937247 For empty namespace
+        namespaces = facturx_xml_etree.nsmap
+        namespaces['some_ns'] = namespaces[None]
+        namespaces.pop(None)
+        if facturx_xml_etree.xpath('//cbc:UBLVersionID', namespaces=namespaces)[0].text == '2.0':
             flavor = 'ubl2-0'
-        elif facturx_xml_etree.xpath('//cbc:UBLVersionID', namespaces=facturx_xml_etree.nsmap) == '2.1':
+        elif facturx_xml_etree.xpath('//cbc:UBLVersionID', namespaces=namespaces)[0].text == '2.1':
             flavor = 'ubl2-1'
+        else:
+            raise Exception(
+                "Could not detect if the invoice is a UBL2.0 pr UBL2.1 "
+                "invoice.")
     else:
         raise Exception(
-            "Could not detect if the invoice is a Factur-X or ZUGFeRD "
+            "Could not detect if the invoice is a Factur-X, ZUGFeRD or UBL"
             "invoice.")
     logger.info('Factur-X flavor is %s (autodetected)', flavor)
     return flavor

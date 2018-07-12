@@ -5,7 +5,7 @@ version:
     _path:
         factur-x: //rsm:ExchangedDocumentContext/ram:GuidelineSpecifiedDocumentContextParameter/ram:ID
         zugferd: //rsm:SpecifiedExchangedDocumentContext/ram:GuidelineSpecifiedDocumentContextParameter/ram:ID
-        ubl2-0: //cbc:ProfileID
+        ubl2-0: //cbc:UBLVersionID
         ubl2-1: //cbc:UBLVersionID
     _required: true
     _default: urn:ferd:CrossIndustryDocument:invoice:1p0:basic

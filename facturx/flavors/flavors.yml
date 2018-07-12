@@ -33,5 +33,27 @@ zugferd:
       schema: ZUGFeRD1p0.xsd
       xmp_str: COMFORT
       xml: comfort.xml
+ubl2-0:
+  xmp_schema: UBL2-0_extension_schema.xmp
+  xmp_filename: null
+  levels:
+    '2.0':
+      schema: maindoc/UBL-Invoice-2.0.xsd
+      xmp_str: INVOICE-2.0
+      xml: UBL-Invoice-2.0-Example.xml
+  standards:
+  country: false
+  currency: false
+ubl2-1:
+  xmp_schema: UBL2-1_extension_schema.xmp
+  xmp_filename: null
+  levels:
+    '2.1':
+      schema: maindoc/UBL-Invoice-2.1.xsd
+      xmp_str: INVOICE-2.1
+      xml: UBL-Invoice-2.1-Example.xml
+  standards:
+  country: false
+  currency: false
 other-standard:
   xmp_filename: something.xml
