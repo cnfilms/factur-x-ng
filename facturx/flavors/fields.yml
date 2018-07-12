@@ -13,8 +13,8 @@ invoice_number:
     _path:
         factur-x: //rsm:ExchangedDocument/ram:ID
         zugferd: //rsm:HeaderExchangedDocument/ram:ID
-        ub2-0: //cbc:ID
-        ub2-1: //cbc:ID
+        ubl2-0: //cbc:ID
+        ubl2-1: //cbc:ID
     _required: true
 date:
     _path:
@@ -34,6 +34,8 @@ name:
     _path:
         factur-x: //rsm:ExchangedDocument/ram:Name
         zugferd: //rsm:HeaderExchangedDocument/ram:Name
+        ubl2-0: //cbc:Name
+        ubl2-1: //cbc:Name
     _default: invoice
     _required: true
 type:
@@ -84,13 +86,13 @@ seller:
     _path:
         factur-x: //rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:Name
         zugferd: //rsm:SpecifiedSupplyChainTradeTransaction/ram:ApplicableSupplyChainTradeAgreement/ram:SellerTradeParty/ram:Name
-        ubl2-0: //cac:AccountSupplierParty/cac:Party/cac:PartyName/cbc:Name
-        ubl2-1: //cac:AccountSupplierParty/cac:Party/cac:PartyName/cbc:Name
+        ubl2-0: //cac:AccountingSupplierParty/cac:Party/cac:PartyName/cbc:Name
+        ubl2-1: //cac:AccountingSupplierParty/cac:Party/cac:PartyName/cbc:Name
     _required: true
 buyer:
     _path:
         factur-x: //rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:Name
         zugferd: //rsm:SpecifiedSupplyChainTradeTransaction/ram:ApplicableSupplyChainTradeAgreement/ram:BuyerTradeParty/ram:Name
-        ubl2-0: //cac:AccountCustomerParty/cac:Party/cac:PartyName/cbc:Name
-        ubl2-1: //cac:AccountCustomerParty/cac:Party/cac:PartyName/cbc:Name
+        ubl2-0: //cac:AccountingCustomerParty/cac:Party/cac:PartyName/cbc:Name
+        ubl2-1: //cac:AccountingCustomerParty/cac:Party/cac:PartyName/cbc:Name
     _required: true

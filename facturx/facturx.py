@@ -113,7 +113,10 @@ class FacturX(object):
         if value is not None:
             value = value[0].text
         if 'date' in field_name:
-            value = datetime.strptime(value, '%Y%m%d')
+            if self.flavor.name[:3] == 'ubl':
+                value = datetime.strptime(value, '%Y-%m-%d')
+            else:
+                value = datetime.strptime(value, '%Y%m%d')
         return value
 
     def __setitem__(self, field_name, value):
@@ -124,7 +127,10 @@ class FacturX(object):
 
         if 'date' in field_name:
             assert isinstance(value, datetime), 'Please pass date values as DateTime() object.'
-            value = value.strftime('%Y%m%d')
+            if self.flavor.name[:3] == 'ubl':
+                value = value.strftime('%Y-%m-%d')
+            else:
+                value = value.strftime('%Y%m%d')
             res[0].attrib['format'] = '102'
             res[0].text = value
         else:
