@@ -36,6 +36,6 @@ setup(
     zip_safe=False,
     entry_points={
         'console_scripts': [
-            'facturx = facturx.command_line_interface:main', ],
+            'facturx = bin.cli:main', ],
     },
 )

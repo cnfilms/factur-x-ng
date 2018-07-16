@@ -1,5 +1,5 @@
-from .facturx import *
-from .logger import logger
+from facturx.facturx import *
+from facturx.logger import logger
 import logging
 import argparse
 
