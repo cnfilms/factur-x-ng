@@ -2,6 +2,7 @@ import os
 import unittest
 from facturx.facturx import *
 from lxml import etree
+from datetime import datetime as dt
 
 
 class TestReading(unittest.TestCase):
@@ -36,7 +37,7 @@ class TestReading(unittest.TestCase):
         self.assertTrue(FacturX(file_path)._xml_from_file(file_path) is not None, "The PDF file has no embedded file")
 
     def test_write_pdf(self):
-        file_path = self.find_file('no_embedded_data.pdf')
+        file_path = self.find_file('embedded_data.pdf')
         factx = FacturX(file_path)
         test_file_path = os.path.join(self.test_files_dir, 'test.pdf')
 
@@ -46,13 +47,15 @@ class TestReading(unittest.TestCase):
         self.discover_files()
 
         # checking that xml is embedded
-        self.assertTrue(self.test_file_embedded_data(file_name='test.pdf') is None)
+        self.assertTrue(
+            self.test_file_embedded_data(file_name='test.pdf') is None)
 
         os.remove(test_file_path)
 
     def test_write_xml(self):
         compare_file_dir = os.path.join(os.path.dirname(__file__), 'compare')
-        expected_file_path = os.path.join(compare_file_dir, 'no_embedded_data.xml')
+        expected_file_path = os.path.join(compare_file_dir,
+                                          'no_embedded_data.xml')
         test_file_path = os.path.join(compare_file_dir, 'test.xml')
 
         factx = FacturX(self.find_file('no_embedded_data.pdf'))
@@ -67,8 +70,14 @@ class TestReading(unittest.TestCase):
             test_file_root = etree.XML(test_file.read(), parser)
             test_file_str = etree.tostring(test_file_root)
 
-        self.assertTrue(expected_file_str == test_file_str, "Files don't match")
+        self.assertEqual(expected_file_str, test_file_str, "Files don't match")
         os.remove(test_file_path)
+
+    def test_default_value(self):
+        file_path = self.find_file('no_embedded_data.pdf')
+        factx = FacturX(file_path)
+        self.assertEqual(factx['type'], "380",
+                         "default value of type doesn't match")
 
 
 def main():

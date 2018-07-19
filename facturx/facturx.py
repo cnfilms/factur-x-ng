@@ -100,7 +100,7 @@ class FacturX(object):
         fields_data = xml_flavor.FIELDS
 
         for field, values in fields_data.items():
-            if '_default' in values and self[field] is None:
+            if '_default' in values and (self[field] is None or self[field] == "0"):
                 self[field] = fields_data[field]['_default']
 
     def __getitem__(self, field_name):

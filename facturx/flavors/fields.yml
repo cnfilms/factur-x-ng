@@ -34,7 +34,7 @@ type:
         factur-x: //rsm:ExchangedDocument/ram:TypeCode
         zugferd: //rsm:HeaderExchangedDocument/ram:TypeCode
     _required: true
-    _default: 380
+    _default: "380"
 currency:
     _path:
         factur-x: //rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:InvoiceCurrencyCode
