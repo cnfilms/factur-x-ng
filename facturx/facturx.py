@@ -55,7 +55,6 @@ class FacturX(object):
             raise TypeError(
                 "The first argument of the method get_facturx_xml_from_pdf must "
                 "be either a string or a file (it is a %s)." % type(pdf_invoice))
-
         xml = self._xml_from_file(pdf_file)
         self.pdf = pdf_file
 
@@ -183,8 +182,10 @@ class FacturX(object):
         output_dict = {}
         for field in fields_data.keys():
             try:
-                r = self.xml.xpath(fields_data[field]['_path'][flavor], namespaces=self._namespaces)
-                output_dict[field] = r[0].text
+                if fields_data[field]['_path'][flavor] is not None:
+                    r = self.xml.xpath(fields_data[field]['_path'][flavor],
+                                       namespaces=self._namespaces)
+                    output_dict[field] = r[0].text
             except IndexError:
                 output_dict[field] = None
 
@@ -196,7 +197,7 @@ class FacturX(object):
             with open(json_file_path, 'w') as json_file:
                 logger.info("Exporting JSON to %s", json_file_path)
                 json.dump(json_output, json_file, indent=4, sort_keys=True)
-      
+
     def write_yaml(self, yml_file_path='output.yml'):
         yml_output = self.__make_dict()
         if self.is_valid():
