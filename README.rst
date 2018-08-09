@@ -9,10 +9,12 @@ Since there are multiple flavors of the embedded XML data, this library
 abstracts them into a Python ``dict``, which can be used to load and
 save from/to different flavors.
 
+This project was forked from `Akretion <https://github.com/akretion/factur-x>`_ and continues to be under the same license. We aim to make the library higher-level, make editing fields easier and support more standards and flavors.
+
 Main features:
 --------------
 
--  Edit and save existing XML metadata.
+-  Edit and save existing XML metadata fields.
 -  Create new XML representation from template and embed in PDF.
 -  Add existing XML representation to PDF.
 -  Validate existing XML representation.
@@ -20,7 +22,7 @@ Main features:
 Installation
 ------------
 
-``sudo pip install --upgrade factur-x``
+``sudo pip install --upgrade factur-x-ng``
 
 Usage
 -----
@@ -86,57 +88,5 @@ depends).
 Contributors
 ------------
 
--  Alexis de Lattre alexis.delattre@akretion.com
-
-Changelog
----------
-
--  Version 0.6 dated 2018-05-01
-
-   -  Now fully PDF/A-3 compliant with additionnal attachments (tested
-      with veraPDF)
-   -  facturx-pdfgen: don’t overwrite by default and add –overwrite
-      option
-   -  Add factur-x library version number in metadata creator entry
-
--  Version 0.5 dated 2018-03-29
-
-   -  Fix XMP metadata structure
-   -  Now fully PDF/A-3 compliant when the input PDF file is PDF/A
-      compliant (tested with veraPDF). This implied copying
-      /OutputIntents and /ID datas from source PDF to Factur-X PDF.
-   -  Fix support for additional attachments: they can now all be saved
-      with Acrobat Reader
-   -  Improve XML extraction from PDF Factur-x file
-
--  Version 0.4 dated 2018-03-27
-
-   -  Factur-x specs say /AFRelationship must be /Data (and not
-      /Alternative)
-   -  Update Factur-X XSD to v1.0 final
-   -  Add support for additionnal attachments
-   -  Add factur-x lib version in Creator metadata table
-   -  Add /PageMode = /UseAttachments, so that the attachments are
-      displayed by default when opening Factur-X PDF invoice with
-      Acrobat Reader
-   -  Improve and enrich PDF objects (ModDate, CheckSum, Size)
-
-Related Projects
-----------------
-
--  Open Source
-
-   -  `Mustang Project <https://github.com/ZUGFeRD/mustangproject>`__
-      (Java)
-   -  `Konik <https://github.com/konik-io/konik>`__ (Java \| .NET)
-   -  `Stephan
-      Stepal <https://github.com/stephanstapel/ZUGFeRD-csharp>`__ (C#)
-
--  Commercial
-
-   -  `Mimotek <http://www.mimotek.com/index.php/zugferd/>`__ (beta)
-   -  `PDFlib <http://www.pdflib.com/knowledge-base/pdfa/zugferd-invoices/>`__
-      (JAVA)
-   -  `iText5 <https://developers.itextpdf.com/examples/zugferd/creating-zugferd-xml-files>`__
-      (Java)
-   -  `pdfMachine <http://www.pdfmachine.com/genp/zugferd_en.html>`__
+-  Alexis de Lattre alexis.delattre@akretion.com: Initial version, PDF- and XMP processing.
+-  Manuel Riel: Python 3 support, support for editing individual fields, separate support for different standards 
