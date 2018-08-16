@@ -22,7 +22,7 @@ Main features:
 Installation
 ------------
 
-``sudo pip install --upgrade factur-x-ng``
+``pip install --upgrade factur-x-ng``
 
 Usage
 -----

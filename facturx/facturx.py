@@ -97,7 +97,7 @@ class FacturX(object):
     def __getitem__(self, field_name):
         path = self.flavor._get_xml_path(field_name)
         value = self.xml.xpath(path, namespaces=self._namespaces)
-        if value is not None:
+        if value:
             value = value[0].text
         if 'date' in field_name:
             value = datetime.strptime(value, '%Y%m%d')
@@ -115,7 +115,7 @@ class FacturX(object):
             res[0].attrib['format'] = '102'
             res[0].text = value
         else:
-            res[0].text = value
+            res[0].text = str(value)
 
     def is_valid(self):
         """Make every effort to validate the current XML.
@@ -138,22 +138,24 @@ class FacturX(object):
         for field in fields_data.keys():
             if fields_data[field]['_required']:
                 r = self.xml.xpath(fields_data[field]['_path'][self.flavor.name], namespaces=self._namespaces)
-                if not len(r):
-                    logger.error("Required field '%s' is not present", field)
-                    return False
-                elif r[0].text is None:
-                    logger.error("Required field %s doesn't contain any value", field)
-                    return False
+                if not len(r) or r[0].text is None:
+                    if '_default' in fields_data[field].keys():
+                        logger.info("Required field '%s' is not present. Using default.", field)
+                        self[field] = fields_data[field]['_default']
+                    else:
+                        logger.error("Required field '%s' is not present", field)
+                        return False
 
         # Check for codes (ISO:3166, ISO:4217)
-        codes_to_check = {
-            'currency': 'currency',
-            'country': 'seller_country',
-            'country': 'buyer_country',
-            'country': 'shipping_country'
-        }
-        for type_code, field in codes_to_check.items():
-            if self.flavor.valid_code(type_code, self[field]) is False:
+        codes_to_check = [
+            ('currency', 'currency'),
+            ('country', 'seller_country'),
+            ('country', 'buyer_country'),
+            ('country', 'shipping_country')
+        ]
+        for code_type, field_name in codes_to_check:
+            if self[field_name] and not self.flavor.valid_code(code_type, self[field_name]):
+                logger.error("Field %s is not a valid %s code." % (field_name, code_type))
                 return False
 
         return True
@@ -175,7 +177,8 @@ class FacturX(object):
         with open(path, 'wb') as f:
             f.write(self.xml_str)
 
-    def __make_dict(self):
+    def to_dict(self):
+        """Get all available fields as dict."""
         fields_data = xml_flavor.FIELDS
         flavor = self.flavor.name
 
@@ -192,14 +195,14 @@ class FacturX(object):
         return output_dict
 
     def write_json(self, json_file_path='output.json'):
-        json_output = self.__make_dict()
+        json_output = self.to_dict()
         if self.is_valid():
             with open(json_file_path, 'w') as json_file:
                 logger.info("Exporting JSON to %s", json_file_path)
                 json.dump(json_output, json_file, indent=4, sort_keys=True)
 
     def write_yaml(self, yml_file_path='output.yml'):
-        yml_output = self.__make_dict()
+        yml_output = self.to_dict()
         if self.is_valid():
             with open(yml_file_path, 'w') as yml_file:
                 logger.info("Exporting YAML to %s", yml_file_path)

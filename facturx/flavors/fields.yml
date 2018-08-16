@@ -28,7 +28,7 @@ name:
         factur-x: //rsm:ExchangedDocument/ram:Name
         zugferd: //rsm:HeaderExchangedDocument/ram:Name
     _default: invoice
-    _required: true
+    _required: false
 type:
     _path:
         factur-x: //rsm:ExchangedDocument/ram:TypeCode
@@ -45,12 +45,12 @@ amount_untaxed:
     _path: 
         factur-x: //rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeSettlementHeaderMonetarySummation/ram:LineTotalAmount
         zugferd: //rsm:SpecifiedSupplyChainTradeTransaction/ram:ApplicableSupplyChainTradeSettlement/ram:SpecifiedTradeSettlementMonetarySummation/ram:LineTotalAmount
-    _required: true
+    _required: false
 amount_tax:
     _path:
         factur-x: //rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeSettlementHeaderMonetarySummation/ram:TaxTotalAmount
         zugferd: //rsm:SpecifiedSupplyChainTradeTransaction/ram:ApplicableSupplyChainTradeSettlement/ram:SpecifiedTradeSettlementMonetarySummation/ram:TaxTotalAmount
-    _required: true
+    _required: false
 amount_total:
     _path:
         factur-x: //rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeSettlementHeaderMonetarySummation/ram:GrandTotalAmount
@@ -70,7 +70,7 @@ seller_country:
     _path:
         factur-x: //rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:PostalTradeAddress/ram:CountryID
         zugferd: //rsm:SpecifiedSupplyChainTradeTransaction/ram:ApplicableSupplyChainTradeAgreement/ram:SellerTradeParty/ram:PostalTradeAddress/ram:CountryID
-    _required: true
+    _required: false
 buyer_name:
     _path:
         factur-x: //rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:Name

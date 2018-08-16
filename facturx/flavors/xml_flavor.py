@@ -12,6 +12,7 @@ Data kept for each flavor:
 import os
 import yaml
 import csv
+import pycountry
 from lxml import etree
 from io import BytesIO
 from pkg_resources import resource_filename
@@ -117,19 +118,15 @@ class XMLFlavor(object):
         else:
             raise KeyError('Path not defined for currenct flavor.')
 
-    def valid_code(self, type_code, code_to_check):
-        if FLAVORS[self.name]['standards'][type_code]:
-            with open(os.path.join(os.path.dirname(__file__), 'standard_code/codes.csv'), 'r') as code_file:
-                reader = csv.DictReader(code_file)
-                for row in reader:
-                    if ',' in row[type_code]:  # a few countries have multiple codes
-                        two_code = row[type_code].split(',')
-                        if code_to_check in two_code:
-                            return None
-                    elif code_to_check == row[type_code]:
-                        return None
-                logger.error("%s is not a valid %s code" % (code_to_check, type_code))
-                return False
+    def valid_code(self, code_type, field_value):
+        try:
+            if code_type == 'country':
+                pycountry.countries.lookup(field_value)
+            elif code_type == 'currency':
+                pycountry.currencies.lookup(field_value)
+            return True
+        except LookupError:
+            return False
 
 def valid_xmp_filenames():
     result = []

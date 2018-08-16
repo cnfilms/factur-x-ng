@@ -1,35 +1,3 @@
-# -*- coding: utf-8 -*-
-# Copyright 2016-2018, Alexis de Lattre <alexis.delattre@akretion.com>
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-#    * Redistributions of source code must retain the above copyright
-#      notice, this list of conditions and the following disclaimer.
-#    * Redistributions in binary form must reproduce the above copyright
-#      notice, this list of conditions and the following disclaimer in the
-#      documentation and/or other materials provided with the distribution.
-#    * The name of the authors may not be used to endorse or promote products
-#      derived from this software without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-# HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-# TODO list:
-# - have both python2 and python3 support
-# - add automated tests (currently, we only have tests at odoo module level)
-# - keep original metadata by copy of pdf_tailer[/Info] ?
-
-from ._version import __version__
 import io
 import os
 import yaml
@@ -76,7 +44,7 @@ class FacturXPDFWriter(PdfFileWriter):
 
         if pdf_metadata is None:
             base_info = {
-                'seller': self.factx['seller'],
+                'seller': self.factx['seller_name'],
                 'number': self.factx['invoice_number'],
                 'date': self.factx['date'],
                 'doc_type': self.factx['type'],
@@ -225,7 +193,7 @@ def _prepare_pdf_metadata_txt(pdf_metadata):
         '/Author': pdf_metadata.get('author', ''),
         '/CreationDate': pdf_date,
         '/Creator':
-        u'factur-x Python lib v%s by Alexis de Lattre' % __version__,
+        u'factur-x Python lib',
         '/Keywords': pdf_metadata.get('keywords', ''),
         '/ModDate': pdf_date,
         '/Subject': pdf_metadata.get('subject', ''),
@@ -292,7 +260,7 @@ def _prepare_pdf_metadata_xml(xmp_level_str, xmp_filename, facturx_ext_schema_ro
     desc_xmp.set(ns_rdf + 'about', '')
     creator = etree.SubElement(
         desc_xmp, ns_xmp + 'CreatorTool')
-    creator.text = 'factur-x python lib v%s by Alexis de Lattre' % __version__
+    creator.text = 'factur-x python lib'
     timestamp = _get_metadata_timestamp()
     etree.SubElement(desc_xmp, ns_xmp + 'CreateDate').text = timestamp
     etree.SubElement(desc_xmp, ns_xmp + 'ModifyDate').text = timestamp
