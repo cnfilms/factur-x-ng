@@ -2,3 +2,4 @@ include LICENSE
 include README.rst
 include requirement.txt
 recursive-include facturx/flavors *
+recursive-exclude facturx/tests *
