@@ -1,10 +1,12 @@
 
 release-test:
 	bumpversion patch
-	python3 setup.py sdist bdist_wheel
+	rm -rf dist
+	python3 setup.py sdist
 	twine upload --repository pypitest dist/*
 
 release:
 	bumpversion patch
+	rm -rf dist
 	python3 setup.py sdist bdist_wheel
 	twine upload dist/*
