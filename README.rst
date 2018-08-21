@@ -22,7 +22,7 @@ Main features:
 Installation
 ------------
 
-``pip install --upgrade factur-x-ng``
+``pip install --index-url https://test.pypi.org/simple/ --upgrade factur-x-ng``
 
 Usage
 -----
