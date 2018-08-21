@@ -1,11 +1,4 @@
 include LICENSE
 include README.rst
 include requirement.txt
-include facturx/flavors/*.yml
-include facturx/flavors/factur-x/xml/*.xml
-include facturx/flavors/factur-x/xmp/*.xmp
-include facturx/flavors/factur-x/xsd/*.xsd
-include facturx/flavors/zugferd/xml/*.xml
-include facturx/flavors/zugferd/xmp/*.xmp
-include facturx/flavors/zugferd/xsd/*.xsd
-include facturx/tests/sample_invoices/*.pdf
+recursive-include facturx/flavors *
