@@ -22,7 +22,11 @@ Main features:
 Installation
 ------------
 
-``pip install --index-url https://test.pypi.org/simple/ --upgrade factur-x-ng``
+::
+   pip install PyPDF2 lxml pyyaml pycountry
+   pip install --index-url https://test.pypi.org/simple/ --upgrade factur-x-ng
+
+::
 
 Usage
 -----
