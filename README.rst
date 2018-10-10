@@ -23,6 +23,7 @@ Installation
 ------------
 
 ::
+
    pip install PyPDF2 lxml pyyaml pycountry
    pip install --index-url https://test.pypi.org/simple/ --upgrade factur-x-ng
 
