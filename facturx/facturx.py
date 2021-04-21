@@ -74,7 +74,7 @@ class FacturX(object):
         pdf = PdfFileReader(pdf_file)
         pdf_root = pdf.trailer['/Root']
         if '/Names' not in pdf_root or '/EmbeddedFiles' not in pdf_root['/Names']:
-            logger.info('No existing XML file found.')
+            # 'No existing XML file found.'
             return None
 
         for file in pdf_root['/Names']['/EmbeddedFiles']['/Names']:
@@ -132,7 +132,6 @@ class FacturX(object):
                 r = self.xml.xpath(fields_data[field]['_path'][self.flavor.name], namespaces=self._namespaces)
                 if not len(r) or r[0].text is None:
                     if '_default' in fields_data[field].keys():
-                        logger.info("Required field '%s' is not present. Using default.", field)
                         self[field] = fields_data[field]['_default']
                     else:
                         logger.error("Required field '%s' is not present", field)

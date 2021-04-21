@@ -87,7 +87,6 @@ class XMLFlavor(object):
         official_schema = etree.XMLSchema(xsd_etree_obj)
         try:
             official_schema.assertValid(etree_to_validate)
-            logger.info('XML file successfully validated against XSD')
         except Exception as e:
             # if the validation of the XSD fails, we arrive here
             logger.error(
