@@ -1,4 +1,8 @@
-<rsm:CrossIndustryInvoice xmlns:qdt="urn:un:unece:uncefact:data:standard:QualifiedDataType:100" xmlns:ram="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100" xmlns:rsm="urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100" xmlns:udt="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<rsm:CrossIndustryInvoice xmlns:qdt="urn:un:unece:uncefact:data:standard:QualifiedDataType:100"
+                          xmlns:ram="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100"
+                          xmlns:rsm="urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100"
+                          xmlns:udt="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100"
+                          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <rsm:ExchangedDocumentContext>
         <ram:BusinessProcessSpecifiedDocumentContextParameter>
             <ram:ID>A1</ram:ID>
@@ -22,7 +26,9 @@
             <ram:SubjectCode>ABL</ram:SubjectCode>
         </ram:IncludedNote>
         <ram:IncludedNote>
-            <ram:Content>Taux de pénalités de retard de paiement égal au taux de refinancement de la Banque Centrale Européenne majorée de 10 points de pourcentage</ram:Content>
+            <ram:Content>Taux de pénalités de retard de paiement égal au taux de refinancement de la Banque Centrale
+                Européenne majorée de 10 points de pourcentage
+            </ram:Content>
             <ram:SubjectCode>PMD</ram:SubjectCode>
         </ram:IncludedNote>
         <ram:IncludedNote>
@@ -36,7 +42,7 @@
     </rsm:ExchangedDocument>
     <rsm:SupplyChainTradeTransaction>
         <ram:ApplicableHeaderTradeAgreement>
-        <ram:BuyerReference>CodeSERVICE A</ram:BuyerReference>
+            <ram:BuyerReference>CodeSERVICE A</ram:BuyerReference>
             <ram:SellerTradeParty>
                 <ram:ID schemeID="0002">99988877900017</ram:ID>
                 <ram:Name>FOURNISSEUR F</ram:Name>
@@ -101,7 +107,7 @@
                 <ram:PayeePartyCreditorFinancialAccount>
                     <ram:IBANID>FR99 3122 1234 0000 9999 1234 008</ram:IBANID>
                 </ram:PayeePartyCreditorFinancialAccount>
-        </ram:SpecifiedTradeSettlementPaymentMeans>
+            </ram:SpecifiedTradeSettlementPaymentMeans>
             <ram:ApplicableTradeTax>
                 <ram:CalculatedAmount currencyID="EUR">3195.37</ram:CalculatedAmount>
                 <ram:TypeCode>VAT</ram:TypeCode>
