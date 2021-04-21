@@ -24,20 +24,5 @@ factur-x:
   standards:
     country: true
     currency: true
-zugferd:
-  xmp_schema: ZUGFeRD_extension_schema.xmp
-  xmp_filename: ZUGFeRD-invoice.xml
-  levels:
-    basic:
-      schema: ZUGFeRD1p0.xsd
-      xmp_str: BASIC
-      xml: basic.xml
-    comfort:
-      schema: ZUGFeRD1p0.xsd
-      xmp_str: COMFORT
-      xml: comfort.xml
-  standards:
-    country: false
-    currency: true
 other-standard:
   xmp_filename: something.xml

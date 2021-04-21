@@ -1,17 +1,14 @@
 import io
+import json
 import os
-import yaml
-import codecs
-from io import BytesIO
-from lxml import etree
-from tempfile import NamedTemporaryFile
-from datetime import datetime
 import os.path
-import mimetypes
-import hashlib
+from datetime import datetime
+from io import BytesIO
+
+import yaml
 from PyPDF2 import PdfFileReader
 from PyPDF2.generic import IndirectObject
-import json
+from lxml import etree
 
 from .flavors import xml_flavor
 from .logger import logger
@@ -39,7 +36,7 @@ class FacturX(object):
     Attributes:
     - xml: xml tree of machine-readable representation.
     - pdf: underlying graphical PDF representation.
-    - flavor: which flavor (Factur-x or Zugferd) to use.
+    - flavor: which flavor (Factur-x) to use.
     """
 
     def __init__(self, pdf_invoice, flavor='factur-x', level='minimum'):
@@ -47,8 +44,6 @@ class FacturX(object):
         if isinstance(pdf_invoice, str) and pdf_invoice.endswith('.pdf') and os.path.isfile(pdf_invoice):
             with open(pdf_invoice, 'rb') as f:
                 pdf_file = BytesIO(f.read())
-        elif isinstance(pdf_invoice, str):
-            pdf_file = BytesIO(pdf_invoice)
         elif isinstance(pdf_invoice, file_types):
             pdf_file = pdf_invoice
         else:
@@ -60,13 +55,13 @@ class FacturX(object):
 
         # PDF has metadata embedded
         if xml is not None:
+            # 'Read existing XML from PDF
             self.xml = xml
             self.flavor = xml_flavor.XMLFlavor(xml)
-            logger.info('Read existing XML from PDF. Flavor: %s', self.flavor.name)
-        # No metadata embedded. Create from template.
         else:
+            # No metadata embedded. Create from template.
+            # 'PDF does not have XML embedded. Adding from template.'
             self.flavor, self.xml = xml_flavor.XMLFlavor.from_template(flavor, level)
-            logger.info('PDF does not have XML embedded. Adding from template.')
 
         self.flavor.check_xsd(self.xml)
         self._namespaces = self.xml.nsmap
@@ -88,14 +83,11 @@ class FacturX(object):
                 if obj['/F'] in xml_flavor.valid_xmp_filenames():
                     xml_root = etree.fromstring(obj['/EF']['/F'].getData())
                     xml_content = xml_root
-                    xml_filename = obj['/F']
-                    logger.info(
-                        'A valid XML file %s has been found in the PDF file',
-                        xml_filename)
+
                     return xml_content
 
     def __getitem__(self, field_name):
-        path = self.flavor._get_xml_path(field_name)
+        path = self.flavor.get_xml_path(field_name)
         value = self.xml.xpath(path, namespaces=self._namespaces)
         if value:
             value = value[0].text
@@ -104,7 +96,7 @@ class FacturX(object):
         return value
 
     def __setitem__(self, field_name, value):
-        path = self.flavor._get_xml_path(field_name)
+        path = self.flavor.get_xml_path(field_name)
         res = self.xml.xpath(path, namespaces=self._namespaces)
         if len(res) > 1:
             raise LookupError('Multiple nodes found for this path. Refusing to edit.')
@@ -164,8 +156,6 @@ class FacturX(object):
         pdfwriter = FacturXPDFWriter(self)
         with open(path, 'wb') as output_f:
             pdfwriter.write(output_f)
-
-        logger.info('XML file added to PDF invoice')
         return True
 
     @property
