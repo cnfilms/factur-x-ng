@@ -10,7 +10,15 @@ version:
 invoice_number:
     _path:
         factur-x: //rsm:ExchangedDocument/ram:ID
-    _required: true
+    _required: false
+avoir_number:
+    _path:
+        factur-x: //rsm:ExchangedDocument/ram:ID
+    _required: false
+avoir_invoice_number:
+    _path:
+        factur-x: /rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:InvoiceReferencedDocument/ram:IssuerAssignedID
+    _required: false
 date:
     _path:
         factur-x: //rsm:ExchangedDocument/ram:IssueDateTime/udt:DateTimeString
