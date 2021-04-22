@@ -75,9 +75,13 @@ tva_rate:
     _path:
         factur-x: //rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax/ram:RateApplicablePercent
     _required: false
-notes:
+included_note_content:
     _path:
-        factur-x: //rsm:HeaderExchangedDocument/ram:IncludedNote/ram:Content
+        factur-x: //rsm:ExchangedDocument/ram:IncludedNote/ram:Content
+    _required: false
+included_note_subject_code:
+    _path:
+        factur-x: //rsm:ExchangedDocument/ram:IncludedNote/ram:SubjectCode
     _required: false
 seller_name:
     _path:
@@ -123,6 +127,10 @@ seller_city_name:
     _path:
         factur-x: //rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:PostalTradeAddress/ram:CityName
     _required: false
+buyer_siret:
+    _path:
+        factur-x: //rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:ID
+    _required: true
 buyer_name:
     _path:
         factur-x: //rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:Name
@@ -149,7 +157,15 @@ buyer_country:
     _required: false
 buyer_engagement_number:
     _path:
+        factur-x: /rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:ContractReferencedDocument/ram:IssuerAssignedID
+    _required: false
+buyer_bon_commande:
+    _path:
         factur-x: /rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerOrderReferencedDocument/ram:IssuerAssignedID
+    _required: false
+buyer_code_service:
+    _path:
+        factur-x: /rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerReference
     _required: false
 shipping_country:
     _path:
