@@ -30,6 +30,7 @@
                 <ram:PostalTradeAddress>
                     <ram:PostcodeCode></ram:PostcodeCode>
                     <ram:LineOne></ram:LineOne>
+                    <ram:LineTwo></ram:LineTwo>
                     <ram:CityName></ram:CityName>
                     <ram:CountryID></ram:CountryID>
                 </ram:PostalTradeAddress>

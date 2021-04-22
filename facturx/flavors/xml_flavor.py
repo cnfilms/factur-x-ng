@@ -49,12 +49,12 @@ class XMLFlavor(object):
         """
         template_filename = os.path.join(
             os.path.dirname(__file__),
-            flavor, 
+            flavor,
             'xml',
-             FLAVORS[flavor]['levels'][level]['xml'])
+            FLAVORS[flavor]['levels'][level]['xml'])
         assert os.path.isfile(template_filename), 'Template for this flavor/level does not exist.'
-        
-        xml_tree = etree.parse(open(template_filename)).getroot()
+        parser = etree.XMLParser(remove_blank_text=True)
+        xml_tree = etree.parse(open(template_filename), parser).getroot()
         return cls(xml_tree), xml_tree
 
     def get_level(self, facturx_xml_etree):
@@ -73,7 +73,6 @@ class XMLFlavor(object):
                 "Invalid Factur-X URN: '%s'" % doc_id)
 
         return level
-
 
     def check_xsd(self, etree_to_validate):
         """Validate the XML file against the XSD"""
@@ -102,9 +101,9 @@ class XMLFlavor(object):
     def get_xmp_xml(self):
         xmp_file = os.path.join(
             os.path.dirname(__file__),
-            self.name, 
+            self.name,
             'xmp',
-             FLAVORS[self.name]['xmp_schema'])
+            FLAVORS[self.name]['xmp_schema'])
         return etree.parse(open(xmp_file))
 
     def get_xml_path(self, field_name):

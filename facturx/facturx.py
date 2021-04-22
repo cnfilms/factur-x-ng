@@ -1,6 +1,7 @@
 import io
 import json
 import os
+import copy
 import os.path
 from datetime import datetime
 from io import BytesIO
@@ -66,6 +67,8 @@ class FacturX(object):
         self.flavor.check_xsd(self.xml)
         self._namespaces = self.xml.nsmap
 
+        self.already_added_field = {}
+
     def read_xml(self):
         """Use XML data from external file. Replaces existing XML or template."""
         pass
@@ -98,16 +101,43 @@ class FacturX(object):
     def __setitem__(self, field_name, value):
         path = self.flavor.get_xml_path(field_name)
         res = self.xml.xpath(path, namespaces=self._namespaces)
-        if len(res) > 1:
-            raise LookupError('Multiple nodes found for this path. Refusing to edit.')
+        if not res:
+            # The node is not defined at all in the parsed xml
+            logger.error("{} is not defined in {}".format(path, self.flavor.name))
+            return
 
+        current_el = res[-1]
+        parent_tag = current_el.getparent().tag
+
+        self._handle_duplicated_node(current_el, parent_tag)
+        self._write_element(current_el, field_name, value)
+        self._save_to_registry(current_el, parent_tag)
+
+    def _handle_duplicated_node(self, current_el, parent_tag):
+        # method meant to handle cardinality 1.n (ApplicableTradeTax or IncludedSupplyChainTradeLineItem)
+        # we get the sibling and duplicate it
+        if parent_tag in self.already_added_field and current_el in self.already_added_field[parent_tag]:
+            parent_el = current_el.getparent()
+            parent_el.addnext(copy.copy(parent_el))
+
+    def _write_element(self, current_el, field_name, value):
+        # if we have type cast worries, it must be handled here
         if 'date' in field_name:
             assert isinstance(value, datetime), 'Please pass date values as DateTime() object.'
             value = value.strftime('%Y%m%d')
-            res[0].attrib['format'] = '102'
-            res[0].text = value
+            current_el.attrib['format'] = '102'
+            current_el.text = value
         else:
-            res[0].text = str(value)
+            current_el.text = str(value)
+
+    def _save_to_registry(self, current_el, parent_tag):
+        if parent_tag not in self.already_added_field:
+            self.already_added_field[parent_tag] = []
+        elif current_el in self.already_added_field[parent_tag]:
+            self.already_added_field[parent_tag] = [el for el in self.already_added_field[parent_tag] if
+                                                    el != current_el]
+        else:
+            self.already_added_field[parent_tag].append(current_el)
 
     def is_valid(self):
         """Make every effort to validate the current XML.

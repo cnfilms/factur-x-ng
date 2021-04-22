@@ -67,7 +67,7 @@ tva_category_code:
     _path:
         factur-x: //rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax/ram:CategoryCode
     _required: false
-tva_due_date_code:
+tva_due_code:
     _path:
         factur-x: //rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax/ram:DueDateTypeCode
     _required: false
@@ -130,6 +130,10 @@ buyer_name:
 buyer_address:
     _path:
         factur-x: //rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:PostalTradeAddress/ram:LineOne
+    _required: false
+buyer_address_2:
+    _path:
+        factur-x: //rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:PostalTradeAddress/ram:LineTwo
     _required: false
 buyer_post_code:
     _path:
