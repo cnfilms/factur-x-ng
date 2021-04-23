@@ -1,17 +1,15 @@
 import io
+import json
 import os
-import yaml
-import codecs
-from io import BytesIO
-from lxml import etree
-from tempfile import NamedTemporaryFile
-from datetime import datetime
+import copy
 import os.path
-import mimetypes
-import hashlib
+from datetime import datetime
+from io import BytesIO
+
+import yaml
 from PyPDF2 import PdfFileReader
 from PyPDF2.generic import IndirectObject
-import json
+from lxml import etree
 
 from .flavors import xml_flavor
 from .logger import logger
@@ -39,7 +37,7 @@ class FacturX(object):
     Attributes:
     - xml: xml tree of machine-readable representation.
     - pdf: underlying graphical PDF representation.
-    - flavor: which flavor (Factur-x or Zugferd) to use.
+    - flavor: which flavor (Factur-x) to use.
     """
 
     def __init__(self, pdf_invoice, flavor='factur-x', level='minimum'):
@@ -47,8 +45,6 @@ class FacturX(object):
         if isinstance(pdf_invoice, str) and pdf_invoice.endswith('.pdf') and os.path.isfile(pdf_invoice):
             with open(pdf_invoice, 'rb') as f:
                 pdf_file = BytesIO(f.read())
-        elif isinstance(pdf_invoice, str):
-            pdf_file = BytesIO(pdf_invoice)
         elif isinstance(pdf_invoice, file_types):
             pdf_file = pdf_invoice
         else:
@@ -60,16 +56,18 @@ class FacturX(object):
 
         # PDF has metadata embedded
         if xml is not None:
+            # 'Read existing XML from PDF
             self.xml = xml
             self.flavor = xml_flavor.XMLFlavor(xml)
-            logger.info('Read existing XML from PDF. Flavor: %s', self.flavor.name)
-        # No metadata embedded. Create from template.
         else:
+            # No metadata embedded. Create from template.
+            # 'PDF does not have XML embedded. Adding from template.'
             self.flavor, self.xml = xml_flavor.XMLFlavor.from_template(flavor, level)
-            logger.info('PDF does not have XML embedded. Adding from template.')
 
         self.flavor.check_xsd(self.xml)
         self._namespaces = self.xml.nsmap
+
+        self.already_added_field = {}
 
     def read_xml(self):
         """Use XML data from external file. Replaces existing XML or template."""
@@ -79,7 +77,7 @@ class FacturX(object):
         pdf = PdfFileReader(pdf_file)
         pdf_root = pdf.trailer['/Root']
         if '/Names' not in pdf_root or '/EmbeddedFiles' not in pdf_root['/Names']:
-            logger.info('No existing XML file found.')
+            # 'No existing XML file found.'
             return None
 
         for file in pdf_root['/Names']['/EmbeddedFiles']['/Names']:
@@ -88,14 +86,11 @@ class FacturX(object):
                 if obj['/F'] in xml_flavor.valid_xmp_filenames():
                     xml_root = etree.fromstring(obj['/EF']['/F'].getData())
                     xml_content = xml_root
-                    xml_filename = obj['/F']
-                    logger.info(
-                        'A valid XML file %s has been found in the PDF file',
-                        xml_filename)
+
                     return xml_content
 
     def __getitem__(self, field_name):
-        path = self.flavor._get_xml_path(field_name)
+        path = self.flavor.get_xml_path(field_name)
         value = self.xml.xpath(path, namespaces=self._namespaces)
         if value:
             value = value[0].text
@@ -104,18 +99,45 @@ class FacturX(object):
         return value
 
     def __setitem__(self, field_name, value):
-        path = self.flavor._get_xml_path(field_name)
+        path = self.flavor.get_xml_path(field_name)
         res = self.xml.xpath(path, namespaces=self._namespaces)
-        if len(res) > 1:
-            raise LookupError('Multiple nodes found for this path. Refusing to edit.')
+        if not res:
+            # The node is not defined at all in the parsed xml
+            logger.error("{} is not defined in {}".format(path, self.flavor.name))
+            return
 
+        current_el = res[-1]
+        parent_tag = current_el.getparent().tag
+
+        self._handle_duplicated_node(current_el, parent_tag)
+        self._write_element(current_el, field_name, value)
+        self._save_to_registry(current_el, parent_tag)
+
+    def _handle_duplicated_node(self, current_el, parent_tag):
+        # method meant to handle cardinality 1.n (ApplicableTradeTax or IncludedSupplyChainTradeLineItem)
+        # we get the sibling and duplicate it
+        if parent_tag in self.already_added_field and current_el in self.already_added_field[parent_tag]:
+            parent_el = current_el.getparent()
+            parent_el.addnext(copy.copy(parent_el))
+
+    def _write_element(self, current_el, field_name, value):
+        # if we have type cast worries, it must be handled here
         if 'date' in field_name:
             assert isinstance(value, datetime), 'Please pass date values as DateTime() object.'
             value = value.strftime('%Y%m%d')
-            res[0].attrib['format'] = '102'
-            res[0].text = value
+            current_el.attrib['format'] = '102'
+            current_el.text = value
         else:
-            res[0].text = str(value)
+            current_el.text = str(value)
+
+    def _save_to_registry(self, current_el, parent_tag):
+        if parent_tag not in self.already_added_field:
+            self.already_added_field[parent_tag] = []
+        elif current_el in self.already_added_field[parent_tag]:
+            self.already_added_field[parent_tag] = [el for el in self.already_added_field[parent_tag] if
+                                                    el != current_el]
+        else:
+            self.already_added_field[parent_tag].append(current_el)
 
     def is_valid(self):
         """Make every effort to validate the current XML.
@@ -140,7 +162,6 @@ class FacturX(object):
                 r = self.xml.xpath(fields_data[field]['_path'][self.flavor.name], namespaces=self._namespaces)
                 if not len(r) or r[0].text is None:
                     if '_default' in fields_data[field].keys():
-                        logger.info("Required field '%s' is not present. Using default.", field)
                         self[field] = fields_data[field]['_default']
                     else:
                         logger.error("Required field '%s' is not present", field)
@@ -164,8 +185,6 @@ class FacturX(object):
         pdfwriter = FacturXPDFWriter(self)
         with open(path, 'wb') as output_f:
             pdfwriter.write(output_f)
-
-        logger.info('XML file added to PDF invoice')
         return True
 
     @property

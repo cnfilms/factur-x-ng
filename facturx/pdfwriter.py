@@ -1,18 +1,12 @@
-import io
-import os
-import yaml
-import codecs
-from io import BytesIO
-from lxml import etree
-from tempfile import NamedTemporaryFile
-from datetime import datetime
-from PyPDF2 import PdfFileWriter, PdfFileReader
-from PyPDF2.generic import DictionaryObject, DecodedStreamObject,\
-    NameObject, createStringObject, ArrayObject, IndirectObject
-from pkg_resources import resource_filename
-import os.path
-import mimetypes
 import hashlib
+import io
+import mimetypes
+from datetime import datetime
+
+from PyPDF2 import PdfFileWriter, PdfFileReader
+from PyPDF2.generic import DictionaryObject, DecodedStreamObject, \
+    NameObject, createStringObject, ArrayObject
+from lxml import etree
 
 from .logger import logger
 
@@ -57,7 +51,6 @@ class FacturXPDFWriter(PdfFileWriter):
                     pdf_metadata[key] = ''
 
         self._update_metadata_add_attachment(pdf_metadata, output_intents)
-
 
     def _update_metadata_add_attachment(self, pdf_metadata, output_intents):
         '''This method is inspired from the code of the addAttachment()
@@ -160,12 +153,12 @@ class FacturXPDFWriter(PdfFileWriter):
         self.addMetadata(metadata_txt_dict)
 
 
-
 def _get_metadata_timestamp():
     now_dt = datetime.now()
     # example format : 2014-07-25T14:01:22+02:00
     meta_date = now_dt.strftime('%Y-%m-%dT%H:%M:%S+00:00')
     return meta_date
+
 
 def _base_info2pdf_metadata(base_info):
     if base_info['doc_type'] == '381':
