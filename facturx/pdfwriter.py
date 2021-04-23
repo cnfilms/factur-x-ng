@@ -1,18 +1,12 @@
-import io
-import os
-import yaml
-import codecs
-from io import BytesIO
-from lxml import etree
-from tempfile import NamedTemporaryFile
-from datetime import datetime
-from PyPDF2 import PdfFileWriter, PdfFileReader
-from PyPDF2.generic import DictionaryObject, DecodedStreamObject,\
-    NameObject, createStringObject, ArrayObject, IndirectObject
-from pkg_resources import resource_filename
-import os.path
-import mimetypes
 import hashlib
+import io
+import mimetypes
+from datetime import datetime
+
+from PyPDF2 import PdfFileWriter, PdfFileReader
+from PyPDF2.generic import DictionaryObject, DecodedStreamObject, \
+    NameObject, createStringObject, ArrayObject
+from lxml import etree
 
 from .logger import logger
 
