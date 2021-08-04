@@ -4,9 +4,6 @@
                           xmlns:udt="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100"
                           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <rsm:ExchangedDocumentContext>
-        <ram:BusinessProcessSpecifiedDocumentContextParameter>
-            <ram:ID></ram:ID>
-        </ram:BusinessProcessSpecifiedDocumentContextParameter>
         <ram:GuidelineSpecifiedDocumentContextParameter>
             <ram:ID>urn:factur-x.eu:1p0:basicwl</ram:ID>
         </ram:GuidelineSpecifiedDocumentContextParameter>
