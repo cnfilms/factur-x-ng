@@ -23,10 +23,10 @@
         <ram:ApplicableHeaderTradeAgreement>
             <ram:BuyerReference></ram:BuyerReference>
             <ram:SellerTradeParty>
-                <ram:ID schemeID=""></ram:ID>
+                <ram:ID schemeID="0002"></ram:ID>
                 <ram:Name></ram:Name>
                 <ram:SpecifiedLegalOrganization>
-                    <ram:ID schemeID=""></ram:ID>
+                    <ram:ID schemeID="0002"></ram:ID>
                 </ram:SpecifiedLegalOrganization>
                 <ram:PostalTradeAddress>
                     <ram:PostcodeCode></ram:PostcodeCode>
@@ -36,17 +36,17 @@
                     <ram:CountryID></ram:CountryID>
                 </ram:PostalTradeAddress>
                 <ram:URIUniversalCommunication>
-                    <ram:URIID schemeID=""></ram:URIID>
+                    <ram:URIID schemeID="SMTP"></ram:URIID>
                 </ram:URIUniversalCommunication>
                 <ram:SpecifiedTaxRegistration>
-                    <ram:ID schemeID=""></ram:ID>
+                    <ram:ID schemeID="VA"></ram:ID>
                 </ram:SpecifiedTaxRegistration>
             </ram:SellerTradeParty>
             <ram:BuyerTradeParty>
-                <ram:ID schemeID=""></ram:ID>
+                <ram:ID schemeID="0002"></ram:ID>
                 <ram:Name></ram:Name>
                 <ram:SpecifiedLegalOrganization>
-                    <ram:ID schemeID=""></ram:ID>
+                    <ram:ID schemeID="0002"></ram:ID>
                 </ram:SpecifiedLegalOrganization>
                 <ram:PostalTradeAddress>
                     <ram:PostcodeCode></ram:PostcodeCode>
@@ -55,7 +55,7 @@
                     <ram:CountryID></ram:CountryID>
                 </ram:PostalTradeAddress>
                 <ram:SpecifiedTaxRegistration>
-                    <ram:ID schemeID=""></ram:ID>
+                    <ram:ID schemeID="VA"></ram:ID>
                 </ram:SpecifiedTaxRegistration>
             </ram:BuyerTradeParty>
             <ram:BuyerOrderReferencedDocument>
@@ -79,7 +79,7 @@
             <ram:InvoiceCurrencyCode>EUR</ram:InvoiceCurrencyCode>
             <ram:PayeeTradeParty>
                 <ram:SpecifiedLegalOrganization>
-                    <ram:ID schemeID=""></ram:ID>
+                    <ram:ID schemeID="0002"></ram:ID>
                 </ram:SpecifiedLegalOrganization>
             </ram:PayeeTradeParty>
             <ram:SpecifiedTradeSettlementPaymentMeans>
