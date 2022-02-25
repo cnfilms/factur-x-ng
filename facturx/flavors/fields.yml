@@ -98,11 +98,11 @@ seller_name:
 seller_global_siret:
     _path:
         factur-x: //rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:GlobalID
-    _required: true
+    _required: false
 seller_siret:
     _path:
         factur-x: //rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:ID
-    _required: true
+    _required: false
 seller_tva_intra:
     _path:
         factur-x: //rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID

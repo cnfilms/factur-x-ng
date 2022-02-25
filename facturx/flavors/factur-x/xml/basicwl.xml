@@ -23,7 +23,6 @@
         <ram:ApplicableHeaderTradeAgreement>
             <ram:BuyerReference></ram:BuyerReference>
             <ram:SellerTradeParty>
-                <ram:ID schemeID="0002"></ram:ID>
                 <ram:Name></ram:Name>
                 <ram:SpecifiedLegalOrganization>
                     <ram:ID schemeID="0002"></ram:ID>
