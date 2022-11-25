@@ -96,21 +96,6 @@
                 <ram:DueDateTypeCode></ram:DueDateTypeCode>
                 <ram:RateApplicablePercent>0</ram:RateApplicablePercent>
             </ram:ApplicableTradeTax>
-            <ram:SpecifiedTradeAllowanceCharge>
-                <ram:ChargeIndicator>
-                    <udt:Indicator>false</udt:Indicator>
-                </ram:ChargeIndicator>
-                <ram:CalculationPercent>0</ram:CalculationPercent>
-                <ram:BasisAmount currencyID="EUR">0</ram:BasisAmount>
-                <ram:ActualAmount currencyID="EUR">0</ram:ActualAmount>
-                <ram:Reason></ram:Reason>
-                <ram:CategoryTradeTax>
-                    <ram:TypeCode></ram:TypeCode>
-                    <ram:CategoryCode></ram:CategoryCode>
-                    <ram:DueDateTypeCode></ram:DueDateTypeCode>
-                    <ram:RateApplicablePercent>0</ram:RateApplicablePercent>
-                </ram:CategoryTradeTax>
-            </ram:SpecifiedTradeAllowanceCharge>
             <ram:SpecifiedTradePaymentTerms>
                 <ram:DueDateDateTime>
                     <udt:DateTimeString format="102">0</udt:DateTimeString>
@@ -118,7 +103,6 @@
             </ram:SpecifiedTradePaymentTerms>
             <ram:SpecifiedTradeSettlementHeaderMonetarySummation>
                 <ram:LineTotalAmount currencyID="EUR">0</ram:LineTotalAmount>
-                <ram:AllowanceTotalAmount currencyID="EUR">0</ram:AllowanceTotalAmount>
                 <ram:TaxBasisTotalAmount currencyID="EUR">0</ram:TaxBasisTotalAmount>
                 <ram:TaxTotalAmount currencyID="EUR">0</ram:TaxTotalAmount>
                 <ram:GrandTotalAmount currencyID="EUR">0</ram:GrandTotalAmount>
