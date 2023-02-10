@@ -88,9 +88,9 @@ class XMLFlavor(object):
             official_schema.assertValid(etree_to_validate)
         except Exception as e:
             # if the validation of the XSD fails, we arrive here
-            logger.error(
+            logger.warning(
                 "The XML file is invalid against the XML Schema Definition")
-            logger.error('XSD Error: %s', e)
+            logger.warning('XSD Error: %s', e)
             raise Exception(
                 "The %s XML file is not valid against the official "
                 "XML Schema Definition. "

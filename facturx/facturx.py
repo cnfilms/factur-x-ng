@@ -103,7 +103,7 @@ class FacturX(object):
         res = self.xml.xpath(path, namespaces=self._namespaces)
         if not res:
             # The node is not defined at all in the parsed xml
-            logger.error("{} is not defined in {}".format(path, self.flavor.name))
+            logger.warning("{} is not defined in {}".format(path, self.flavor.name))
             return
 
         current_el = res[-1]
@@ -164,7 +164,7 @@ class FacturX(object):
                     if '_default' in fields_data[field].keys():
                         self[field] = fields_data[field]['_default']
                     else:
-                        logger.error("Required field '%s' is not present", field)
+                        logger.warning("Required field '%s' is not present", field)
                         return False
 
         # Check for codes (ISO:3166, ISO:4217)
@@ -176,7 +176,7 @@ class FacturX(object):
         ]
         for code_type, field_name in codes_to_check:
             if self[field_name] and not self.flavor.valid_code(code_type, self[field_name]):
-                logger.error("Field %s is not a valid %s code." % (field_name, code_type))
+                logger.warning("Field %s is not a valid %s code." % (field_name, code_type))
                 return False
 
         return True

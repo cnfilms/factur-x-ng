@@ -7,7 +7,7 @@ import re
 
 setup(
     name='factur-x-ng',
-    version='0.8.15.cinego',
+    version='0.8.16.cinego',
     author='Alexis de Lattre, Manuel Riel, Harshit Joshi',
     author_email='hello@invoice-x.com',
     url='https://github.com/invoice-x/factur-x-ng',
