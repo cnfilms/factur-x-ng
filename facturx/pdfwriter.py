@@ -3,9 +3,9 @@ import io
 import mimetypes
 from datetime import datetime
 
-from PyPDF2 import PdfFileWriter, PdfFileReader
-from PyPDF2.generic import DictionaryObject, DecodedStreamObject, \
-    NameObject, createStringObject, ArrayObject
+from pypdf import PdfWriter, PdfReader
+from pypdf.generic import DictionaryObject, DecodedStreamObject, \
+    NameObject, create_string_object, ArrayObject
 from lxml import etree
 
 from .logger import logger
@@ -17,7 +17,10 @@ except NameError:
     file_types = (io.IOBase,)
 unicode = str
 
-class FacturXPDFWriter(PdfFileWriter):
+FACTURX_FILENAME = 'facturx xml'
+
+
+class FacturXPDFWriter(PdfWriter):
     def __init__(self, facturx, pdf_metadata=None):
         """Take a FacturX instance and write the XML to the attached PDF file"""
 
@@ -25,10 +28,10 @@ class FacturXPDFWriter(PdfFileWriter):
         # TODO: Can handle str/paths and ByteIO?
         self.factx = facturx
 
-        original_pdf = PdfFileReader(facturx.pdf)
+        original_pdf = PdfReader(facturx.pdf)
         # Extract /OutputIntents obj from original invoice
         output_intents = _get_original_output_intents(original_pdf)
-        self.appendPagesFromReader(original_pdf)
+        self.append_pages_from_reader(original_pdf)
 
         original_pdf_id = original_pdf.trailer.get('/ID')
         logger.debug('original_pdf_id=%s', original_pdf_id)
@@ -52,28 +55,31 @@ class FacturXPDFWriter(PdfFileWriter):
 
         self._update_metadata_add_attachment(pdf_metadata, output_intents)
 
+    def add_outline(self) -> None:
+        pass
+
     def _update_metadata_add_attachment(self, pdf_metadata, output_intents):
-        '''This method is inspired from the code of the addAttachment()
-        method of the PyPDF2 lib'''
+        """This method is inspired from the code of the addAttachment()
+        method of the PyPDF2 lib"""
         
         # The entry for the file
         facturx_xml_str = self.factx.xml_str
         md5sum = hashlib.md5().hexdigest()
-        md5sum_obj = createStringObject(md5sum)
+        md5sum_obj = create_string_object(md5sum)
         params_dict = DictionaryObject({
             NameObject('/CheckSum'): md5sum_obj,
-            NameObject('/ModDate'): createStringObject(_get_pdf_timestamp()),
+            NameObject('/ModDate'): create_string_object(_get_pdf_timestamp()),
             NameObject('/Size'): NameObject(str(len(facturx_xml_str))),
             })
         file_entry = DecodedStreamObject()
-        file_entry.setData(facturx_xml_str)  # here we integrate the file itself
+        file_entry.set_data(facturx_xml_str)  # here we integrate the file itself
         file_entry.update({
             NameObject("/Type"): NameObject("/EmbeddedFile"),
             NameObject("/Params"): params_dict,
             # 2F is '/' in hexadecimal
             NameObject("/Subtype"): NameObject("/text#2Fxml"),
             })
-        file_entry_obj = self._addObject(file_entry)
+        file_entry_obj = self._add_object(file_entry)
         # The Filespec entry
         ef_dict = DictionaryObject({
             NameObject("/F"): file_entry_obj,
@@ -81,16 +87,16 @@ class FacturXPDFWriter(PdfFileWriter):
             })
 
         xmp_filename = self.factx.flavor.details['xmp_filename']
-        fname_obj = createStringObject(xmp_filename)
+        fname_obj = create_string_object(xmp_filename)
         filespec_dict = DictionaryObject({
             NameObject("/AFRelationship"): NameObject("/Data"),
-            NameObject("/Desc"): createStringObject("Factur-X Invoice"),
+            NameObject("/Desc"): create_string_object("Factur-X Invoice"),
             NameObject("/Type"): NameObject("/Filespec"),
             NameObject("/F"): fname_obj,
             NameObject("/EF"): ef_dict,
             NameObject("/UF"): fname_obj,
             })
-        filespec_obj = self._addObject(filespec_dict)
+        filespec_obj = self._add_object(filespec_dict)
         name_arrayobj_cdict = {fname_obj: filespec_obj}
         
         # TODO: add back additional attachments?
@@ -115,14 +121,14 @@ class FacturXPDFWriter(PdfFileWriter):
         res_output_intents = []
         logger.debug('output_intents=%s', output_intents)
         for output_intent_dict, dest_output_profile_dict in output_intents:
-            dest_output_profile_obj = self._addObject(
+            dest_output_profile_obj = self._add_object(
                 dest_output_profile_dict)
             # TODO detect if there are no other objects in output_intent_dest_obj
             # than /DestOutputProfile
             output_intent_dict.update({
                 NameObject("/DestOutputProfile"): dest_output_profile_obj,
                 })
-            output_intent_obj = self._addObject(output_intent_dict)
+            output_intent_obj = self._add_object(output_intent_dict)
             res_output_intents.append(output_intent_obj)
         
         # Update the root
@@ -130,13 +136,13 @@ class FacturXPDFWriter(PdfFileWriter):
         xmp_template = self.factx.flavor.get_xmp_xml()
         metadata_xml_str = _prepare_pdf_metadata_xml(xmp_level_str, xmp_filename, xmp_template, pdf_metadata)
         metadata_file_entry = DecodedStreamObject()
-        metadata_file_entry.setData(metadata_xml_str)
+        metadata_file_entry.set_data(metadata_xml_str)
         metadata_file_entry.update({
             NameObject('/Subtype'): NameObject('/XML'),
             NameObject('/Type'): NameObject('/Metadata'),
             })
-        metadata_obj = self._addObject(metadata_file_entry)
-        af_value_obj = self._addObject(ArrayObject(af_list))
+        metadata_obj = self._add_object(metadata_file_entry)
+        af_value_obj = self._add_object(ArrayObject(af_list))
         self._root_object.update({
             NameObject("/AF"): af_value_obj,
             NameObject("/Metadata"): metadata_obj,
@@ -150,7 +156,7 @@ class FacturXPDFWriter(PdfFileWriter):
                 NameObject("/OutputIntents"): ArrayObject(res_output_intents),
             })
         metadata_txt_dict = _prepare_pdf_metadata_txt(pdf_metadata)
-        self.addMetadata(metadata_txt_dict)
+        self.add_metadata(metadata_txt_dict)
 
 
 def _get_metadata_timestamp():
@@ -165,14 +171,20 @@ def _base_info2pdf_metadata(base_info):
         doc_type_name = u'Refund'
     else:
         doc_type_name = u'Invoice'
-    date_str = datetime.strftime(base_info['date'], '%Y-%m-%d')
-    title = '%s: %s %s' % (
-        base_info['seller'], doc_type_name, base_info['number'])
-    subject = 'Factur-X %s %s dated %s issued by %s' % (
-        doc_type_name, base_info['number'], date_str, base_info['seller'])
+
+    title = '{}: {} {}'.format(base_info['seller'], doc_type_name, base_info['number'])
+
+    date_str = ''
+    if 'date' in base_info and base_info['date']:
+        date_str = datetime.strftime(base_info['date'], '%Y-%m-%d')
+
+    subject = 'Factur-X {} {} dated {} issued by {}'.format(doc_type_name,
+                                                            base_info['number'],
+                                                            date_str,
+                                                            base_info['seller'])
     pdf_metadata = {
-        'author': base_info['seller'],
-        'keywords': u'%s, Factur-X' % doc_type_name,
+        'author': base_info['seller'] if 'seller' in base_info and base_info['seller'] else '',
+        'keywords': u'{}, Factur-X'.format(doc_type_name),
         'title': title,
         'subject': subject,
         }
@@ -183,10 +195,9 @@ def _base_info2pdf_metadata(base_info):
 def _prepare_pdf_metadata_txt(pdf_metadata):
     pdf_date = _get_pdf_timestamp()
     info_dict = {
-        '/Author': pdf_metadata.get('author', ''),
+        '/Author': pdf_metadata.get('author', 'facturx-ng'),
         '/CreationDate': pdf_date,
-        '/Creator':
-        u'factur-x Python lib',
+        '/Creator': u'factur-x Python lib',
         '/Keywords': pdf_metadata.get('keywords', ''),
         '/ModDate': pdf_date,
         '/Subject': pdf_metadata.get('subject', ''),
@@ -296,14 +307,14 @@ def _filespec_additional_attachments(
     logger.debug('_filespec_additional_attachments filename=%s', filename)
     mod_date_pdf = _get_pdf_timestamp(file_dict['mod_date'])
     md5sum = hashlib.md5(file_bin).hexdigest()
-    md5sum_obj = createStringObject(md5sum)
+    md5sum_obj = create_string_object(md5sum)
     params_dict = DictionaryObject({
         NameObject('/CheckSum'): md5sum_obj,
-        NameObject('/ModDate'): createStringObject(mod_date_pdf),
+        NameObject('/ModDate'): create_string_object(mod_date_pdf),
         NameObject('/Size'): NameObject(str(len(file_bin))),
         })
     file_entry = DecodedStreamObject()
-    file_entry.setData(file_bin)
+    file_entry.set_data(file_bin)
     file_mimetype = mimetypes.guess_type(filename)[0]
     if not file_mimetype:
         file_mimetype = 'application/octet-stream'
@@ -313,61 +324,61 @@ def _filespec_additional_attachments(
         NameObject("/Params"): params_dict,
         NameObject("/Subtype"): NameObject(file_mimetype_insert),
         })
-    file_entry_obj = pdf_filestream._addObject(file_entry)
+    file_entry_obj = pdf_filestream._add_object(file_entry)
     ef_dict = DictionaryObject({
         NameObject("/F"): file_entry_obj,
         })
-    fname_obj = createStringObject(filename)
+    fname_obj = create_string_object(filename)
     filespec_dict = DictionaryObject({
         NameObject("/AFRelationship"): NameObject("/Unspecified"),
-        NameObject("/Desc"): createStringObject(file_dict.get('desc', '')),
+        NameObject("/Desc"): create_string_object(file_dict.get('desc', '')),
         NameObject("/Type"): NameObject("/Filespec"),
         NameObject("/F"): fname_obj,
         NameObject("/EF"): ef_dict,
         NameObject("/UF"): fname_obj,
         })
-    filespec_obj = pdf_filestream._addObject(filespec_dict)
+    filespec_obj = pdf_filestream._add_object(filespec_dict)
     name_arrayobj_cdict[fname_obj] = filespec_obj
 
 # moved to FacturXPDFWriter
 def _facturx_update_metadata_add_attachment(
         pdf_filestream, facturx_xml_str, pdf_metadata, facturx_level,
         output_intents=[], additional_attachments={}):
-    '''This method is inspired from the code of the addAttachment()
-    method of the PyPDF2 lib'''
+    """This method is inspired from the code of the addAttachment()
+    method of the PyPDF2 lib"""
     # The entry for the file
     md5sum = hashlib.md5(facturx_xml_str).hexdigest()
-    md5sum_obj = createStringObject(md5sum)
+    md5sum_obj = create_string_object(md5sum)
     params_dict = DictionaryObject({
         NameObject('/CheckSum'): md5sum_obj,
-        NameObject('/ModDate'): createStringObject(_get_pdf_timestamp()),
+        NameObject('/ModDate'): create_string_object(_get_pdf_timestamp()),
         NameObject('/Size'): NameObject(str(len(facturx_xml_str))),
         })
     file_entry = DecodedStreamObject()
-    file_entry.setData(facturx_xml_str)  # here we integrate the file itself
+    file_entry.set_data(facturx_xml_str)  # here we integrate the file itself
     file_entry.update({
         NameObject("/Type"): NameObject("/EmbeddedFile"),
         NameObject("/Params"): params_dict,
         # 2F is '/' in hexadecimal
         NameObject("/Subtype"): NameObject("/text#2Fxml"),
         })
-    file_entry_obj = pdf_filestream._addObject(file_entry)
+    file_entry_obj = pdf_filestream._add_object(file_entry)
     # The Filespec entry
     ef_dict = DictionaryObject({
         NameObject("/F"): file_entry_obj,
         NameObject('/UF'): file_entry_obj,
         })
 
-    fname_obj = createStringObject(FACTURX_FILENAME)
+    fname_obj = create_string_object(FACTURX_FILENAME)
     filespec_dict = DictionaryObject({
         NameObject("/AFRelationship"): NameObject("/Data"),
-        NameObject("/Desc"): createStringObject("Factur-X Invoice"),
+        NameObject("/Desc"): create_string_object("Factur-X Invoice"),
         NameObject("/Type"): NameObject("/Filespec"),
         NameObject("/F"): fname_obj,
         NameObject("/EF"): ef_dict,
         NameObject("/UF"): fname_obj,
         })
-    filespec_obj = pdf_filestream._addObject(filespec_dict)
+    filespec_obj = pdf_filestream._add_object(filespec_dict)
     name_arrayobj_cdict = {fname_obj: filespec_obj}
     for attach_bin, attach_dict in additional_attachments.items():
         _filespec_additional_attachments(
@@ -393,26 +404,26 @@ def _facturx_update_metadata_add_attachment(
     res_output_intents = []
     logger.debug('output_intents=%s', output_intents)
     for output_intent_dict, dest_output_profile_dict in output_intents:
-        dest_output_profile_obj = pdf_filestream._addObject(
+        dest_output_profile_obj = pdf_filestream._add_object(
             dest_output_profile_dict)
         # TODO detect if there are no other objects in output_intent_dest_obj
         # than /DestOutputProfile
         output_intent_dict.update({
             NameObject("/DestOutputProfile"): dest_output_profile_obj,
             })
-        output_intent_obj = pdf_filestream._addObject(output_intent_dict)
+        output_intent_obj = pdf_filestream._add_object(output_intent_dict)
         res_output_intents.append(output_intent_obj)
     
     # Update the root
     metadata_xml_str = _prepare_pdf_metadata_xml(facturx_level, pdf_metadata)
     metadata_file_entry = DecodedStreamObject()
-    metadata_file_entry.setData(metadata_xml_str)
+    metadata_file_entry.set_data(metadata_xml_str)
     metadata_file_entry.update({
         NameObject('/Subtype'): NameObject('/XML'),
         NameObject('/Type'): NameObject('/Metadata'),
         })
-    metadata_obj = pdf_filestream._addObject(metadata_file_entry)
-    af_value_obj = pdf_filestream._addObject(ArrayObject(af_list))
+    metadata_obj = pdf_filestream._add_object(metadata_file_entry)
+    af_value_obj = pdf_filestream._add_object(ArrayObject(af_list))
     pdf_filestream._root_object.update({
         NameObject("/AF"): af_value_obj,
         NameObject("/Metadata"): metadata_obj,
@@ -426,7 +437,7 @@ def _facturx_update_metadata_add_attachment(
             NameObject("/OutputIntents"): ArrayObject(res_output_intents),
         })
     metadata_txt_dict = _prepare_pdf_metadata_txt(pdf_metadata)
-    pdf_filestream.addMetadata(metadata_txt_dict)
+    pdf_filestream.add_metadata(metadata_txt_dict)
 
 
 def _extract_base_info(facturx_xml_etree):
@@ -456,26 +467,6 @@ def _extract_base_info(facturx_xml_etree):
     return base_info
 
 
-def _base_info2pdf_metadata(base_info):
-    if base_info['doc_type'] == '381':
-        doc_type_name = u'Refund'
-    else:
-        doc_type_name = u'Invoice'
-    date_str = datetime.strftime(base_info['date'], '%Y-%m-%d')
-    title = '%s: %s %s' % (
-        base_info['seller'], doc_type_name, base_info['number'])
-    subject = 'Factur-X %s %s dated %s issued by %s' % (
-        doc_type_name, base_info['number'], date_str, base_info['seller'])
-    pdf_metadata = {
-        'author': base_info['seller'],
-        'keywords': u'%s, Factur-X' % doc_type_name,
-        'title': title,
-        'subject': subject,
-        }
-    logger.debug('Converted base_info to pdf_metadata: %s', pdf_metadata)
-    return pdf_metadata
-
-
 def _get_original_output_intents(original_pdf):
     output_intents = []
     try:
@@ -483,15 +474,16 @@ def _get_original_output_intents(original_pdf):
         ori_output_intents = pdf_root['/OutputIntents']
         logger.debug('output_intents_list=%s', ori_output_intents)
         for ori_output_intent in ori_output_intents:
-            ori_output_intent_dict = ori_output_intent.getObject()
+            ori_output_intent_dict = ori_output_intent.get_object()
             logger.debug('ori_output_intents_dict=%s', ori_output_intent_dict)
             dest_output_profile_dict =\
-                ori_output_intent_dict['/DestOutputProfile'].getObject()
+                ori_output_intent_dict['/DestOutputProfile'].get_object()
             output_intents.append(
                 (ori_output_intent_dict, dest_output_profile_dict))
     except:
         pass
     return output_intents
+
 
 def _get_pdf_timestamp(date=None):
     if date is None:
