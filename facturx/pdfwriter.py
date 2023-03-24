@@ -132,8 +132,11 @@ class FacturXPDFWriter(PdfWriter):
             res_output_intents.append(output_intent_obj)
         
         # Update the root
+        xmp_level_str = self.factx.flavor.details['levels'][self.factx.flavor.level]['xmp_str']
+        xmp_template = self.factx.flavor.get_xmp_xml()
+        metadata_xml_str = _prepare_pdf_metadata_xml(xmp_level_str, xmp_filename, xmp_template, pdf_metadata)
         metadata_file_entry = DecodedStreamObject()
-
+        metadata_file_entry.set_data(metadata_xml_str)
         metadata_file_entry.update({
             NameObject('/Subtype'): NameObject('/XML'),
             NameObject('/Type'): NameObject('/Metadata'),
@@ -336,7 +339,6 @@ def _filespec_additional_attachments(
         })
     filespec_obj = pdf_filestream._add_object(filespec_dict)
     name_arrayobj_cdict[fname_obj] = filespec_obj
-
 
 # moved to FacturXPDFWriter
 def _facturx_update_metadata_add_attachment(
