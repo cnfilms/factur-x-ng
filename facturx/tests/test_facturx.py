@@ -23,6 +23,10 @@ class TestReading(unittest.TestCase):
                 file_path = os.path.join(self.test_files_dir, file)
                 return file_path
 
+    # def test_input_error(self):
+    #     with self.assertRaises(TypeError) as context:
+    #         FacturX('non-existant.pdf')
+
     def test_file_without_embedded_data(self):
         file_path = self.find_file('no_embedded_data.pdf')
         self.assertEqual(FacturX(file_path)._xml_from_file(file_path), None)
@@ -51,7 +55,7 @@ class TestReading(unittest.TestCase):
         expected_file_path = os.path.join(compare_file_dir, 'no_embedded_data.xml')
         test_file_path = os.path.join(compare_file_dir, 'test.xml')
 
-        factx = FacturX(self.find_file('embedded_data.pdf'))
+        factx = FacturX(self.find_file('no_embedded_data.pdf'))
         factx.write_xml(test_file_path)
         self.assertTrue(os.path.isfile(test_file_path))
 

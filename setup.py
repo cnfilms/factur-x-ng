@@ -7,7 +7,7 @@ import re
 
 setup(
     name='factur-x-ng',
-    version='0.9.0.cinego',
+    version='0.8.16.cinego',
     author='Alexis de Lattre, Manuel Riel, Harshit Joshi',
     author_email='hello@invoice-x.com',
     url='https://github.com/invoice-x/factur-x-ng',
@@ -15,13 +15,14 @@ setup(
     long_description=open('README.rst').read(),
     license='BSD',
     classifiers=[
-        'Development Status :: 5',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
+        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: BSD License',
         "Operating System :: OS Independent",
     ],
-    keywords='e-invoice Factur-X Chorus',
+    keywords='e-invoice ZUGFeRD Factur-X Chorus',
     packages=find_packages(),
     install_requires=[r.strip() for r in
                       open('requirement.txt').read().splitlines()],
