@@ -98,14 +98,6 @@ class XMLFlavor(object):
                 "cause of the problem: %s." % (self.name, unicode(e)))
         return True
 
-    def get_xmp_xml(self):
-        xmp_file = os.path.join(
-            os.path.dirname(__file__),
-            self.name,
-            'xmp',
-            FLAVORS[self.name]['xmp_schema'])
-        return etree.parse(open(xmp_file))
-
     def get_xml_path(self, field_name):
         """Return XML path based on field_name and flavor"""
 
