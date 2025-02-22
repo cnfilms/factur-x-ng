@@ -1,7 +1,7 @@
+import argparse
+
 from facturx.facturx import *
 from facturx.logger import logger
-import logging
-import argparse
 
 
 def main():

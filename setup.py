@@ -23,7 +23,7 @@ setup(
     keywords='e-invoice ZUGFeRD Factur-X Chorus',
     packages=find_packages(),
     install_requires=[r.strip() for r in
-                      open('requirement.txt').read().splitlines()],
+                      open('requirements.txt').read().splitlines()],
     include_package_data=True,
     zip_safe=False,
     entry_points={

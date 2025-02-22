@@ -2,13 +2,12 @@ import io
 import json
 import os
 import copy
-import os.path
 from datetime import datetime
 from io import BytesIO
 
 import yaml
-from PyPDF2 import PdfFileReader
-from PyPDF2.generic import IndirectObject
+from pypdf import PdfReader
+from pypdf.generic import IndirectObject
 from lxml import etree
 
 from .flavors import xml_flavor
@@ -23,7 +22,6 @@ except NameError:
 unicode = str
 
 __all__ = ['FacturX']
-
 
 class FacturX(object):
     """Represents an electronic PDF invoice with embedded XML metadata following the
@@ -74,7 +72,7 @@ class FacturX(object):
         pass
 
     def _xml_from_file(self, pdf_file):
-        pdf = PdfFileReader(pdf_file)
+        pdf = PdfReader(pdf_file)
         pdf_root = pdf.trailer['/Root']
         if '/Names' not in pdf_root or '/EmbeddedFiles' not in pdf_root['/Names']:
             # 'No existing XML file found.'
@@ -82,9 +80,9 @@ class FacturX(object):
 
         for file in pdf_root['/Names']['/EmbeddedFiles']['/Names']:
             if isinstance(file, IndirectObject):
-                obj = file.getObject()
+                obj = file.get_object()
                 if obj['/F'] in xml_flavor.valid_xmp_filenames():
-                    xml_root = etree.fromstring(obj['/EF']['/F'].getData())
+                    xml_root = etree.fromstring(obj['/EF']['/F'].get_data())
                     xml_content = xml_root
 
                     return xml_content
@@ -94,7 +92,7 @@ class FacturX(object):
         value = self.xml.xpath(path, namespaces=self._namespaces)
         if value:
             value = value[0].text
-        if 'date' in field_name:
+        if 'date' in field_name and value:
             value = datetime.strptime(value, '%Y%m%d')
         return value
 

@@ -67,6 +67,8 @@ class TestReading(unittest.TestCase):
             test_file_root = etree.XML(test_file.read(), parser)
             test_file_str = etree.tostring(test_file_root)
 
+        expected_file_str = expected_file_str.decode('utf-8')
+        test_file_str = test_file_str.decode('utf-8')
         self.assertTrue(expected_file_str == test_file_str, "Files don't match")
         os.remove(test_file_path)
 
